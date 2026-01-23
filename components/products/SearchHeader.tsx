@@ -3,13 +3,17 @@
 import SearchField from "@/components/SearchField";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/queries/products";
+import SearchFieldSkeleton from "../SearchSkeleton";
 
 const SearchHeader = () => {
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: fetchProducts,
     staleTime: 2 * 60 * 1000,
   });
+
+  if (isLoading)
+    return <SearchFieldSkeleton wrapperClassName="sm:w-[400px] w-full" />;
 
   return (
     <SearchField
