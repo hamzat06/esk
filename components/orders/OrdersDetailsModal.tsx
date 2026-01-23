@@ -93,7 +93,7 @@ export default function OrderDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto p-0 gap-0">
+      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto p-0 gap-0">
         {/* Header */}
         <DialogHeader className="px-6 pt-6 pb-4 border-b bg-white sticky top-0 z-10">
           <div className="flex items-start justify-between gap-4">
