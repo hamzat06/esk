@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { Plus } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
-import {
-  Product,
-  ProductOptionGroup,
-  ProductOptionItem,
-} from "./types/product";
+import { Product, ProductOptionItem } from "./types/product";
 import { cn } from "@/lib/utils";
+import { useCartStore } from "../cart/stores/cartStore";
+import { calculateCartPricing } from "@/lib/calculateCartPricing";
+import { CartItem } from "../cart/types/cart";
 
 interface ProductDetailsModalProps {
   product?: Product;
@@ -21,134 +20,216 @@ interface ProductDetailsModalProps {
   onClose?: () => void;
 }
 
+type SelectedOptions = Record<
+  string,
+  {
+    label: string;
+    price: number;
+  }
+>;
+
 const ProductDetailsModal = ({
   product,
   open,
   onClose,
 }: ProductDetailsModalProps) => {
-  const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string>
-  >({});
+  const addToCart = useCartStore((s) => s.addItem);
+
+  const [quantity, setQuantity] = useState(1);
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
 
   const hasRequiredOptions =
     product?.options?.groups?.every(
-      (group: ProductOptionGroup) =>
-        !group.required || selectedOptions[group.key],
+      (group) => !group.required || selectedOptions[group.key],
     ) ?? true;
 
-  const handleOptionChange = (groupKey: string, value: string) => {
+  const pricing = useMemo(() => {
+    if (!product) return { unitPrice: 0, totalPrice: 0 };
+
+    return calculateCartPricing(product.amount, selectedOptions, quantity);
+  }, [product, selectedOptions, quantity]);
+
+  function handleOptionChange(groupKey: string, option: ProductOptionItem) {
     setSelectedOptions((prev) => ({
       ...prev,
-      [groupKey]: value,
+      [groupKey]: {
+        label: option.label,
+        price: option.price,
+      },
     }));
-  };
+  }
+
+  function handleAddToCart() {
+    if (!product) return;
+
+    const cartItem: CartItem = {
+      id: crypto.randomUUID(),
+      productId: product.id,
+      title: product.title,
+      image: product.image,
+
+      quantity,
+      basePrice: product.amount,
+      options: selectedOptions,
+
+      unitPrice: pricing.unitPrice,
+      totalPrice: pricing.totalPrice,
+    };
+
+    addToCart(cartItem);
+    setQuantity(1);
+    setSelectedOptions({});
+    onClose?.();
+  }
+
+  function handleClose() {
+    setQuantity(1);
+    setSelectedOptions({});
+    onClose?.();
+  }
+
+  if (!product) return null;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          setSelectedOptions({});
-        }
-        onClose?.();
-      }}
-    >
-      <DialogContent className="sm:max-w-md translate-y-[-50%] sm:translate-y-[-60%] px-0 py-5">
-        {/* IMAGE */}
-        <div className="w-full h-80 px-4 sm:px-5 mt-10 relative">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[90vh] overflow-y-auto">
+        {/* Product Image */}
+        <div className="relative w-full h-72 sm:h-96">
           <Image
             alt={product?.title || ""}
             src={product?.image || "/assets/jollof-rice-chicken.jpg"}
-            width={500}
-            height={500}
+            fill
             className={cn(
-              "size-full rounded-lg object-cover",
+              "object-cover",
               !product?.in_stock && "grayscale",
             )}
           />
 
           {!product?.in_stock && (
-            <Badge className="absolute right-8 top-4 bg-white text-red-500 font-semibold p-1.5 rounded-sm text-sm">
+            <Badge className="absolute right-4 top-4 bg-white text-red-500 font-semibold px-3 py-1.5 text-sm shadow-md">
               Out of stock
             </Badge>
           )}
         </div>
 
-        {/* PRODUCT INFO */}
-        <div className="flex flex-col gap-1 px-4 sm:px-5">
-          <h3 className="text-lg sm:text-xl font-semibold">{product?.title}</h3>
-          <p className="text-sm sm:text-base text-gray-500">
-            {product?.description}
-          </p>
-          <span className="text-xl sm:text-3xl font-semibold font-playfair">
-            ${product?.amount}
-          </span>
-        </div>
-
-        {/* OPTIONS */}
-        {product?.options?.groups?.map((group: ProductOptionGroup) => (
-          <div key={group.key} className="px-4 sm:px-5 pt-5">
-            <p className="text-sm font-semibold mb-3">
-              {group.label}
-              {group.required && <span className="text-red-500 ml-1">*</span>}
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Title & Description */}
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-bold font-playfair mb-2">
+              {product.title}
+            </h3>
+            <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+              {product.description}
             </p>
-
-            <RadioGroup
-              value={selectedOptions[group.key]}
-              onValueChange={(value) => handleOptionChange(group.key, value)}
-              className="flex flex-wrap gap-3"
-            >
-              {group.options.map((option: ProductOptionItem) => {
-                const isSelected = selectedOptions[group.key] === option.label;
-
-                return (
-                  <div key={option.label}>
-                    <RadioGroupItem
-                      value={option.label}
-                      id={`${group.key}-${option.label}`}
-                      className="peer sr-only"
-                    />
-
-                    <Label
-                      htmlFor={`${group.key}-${option.label}`}
-                      className={cn(
-                        "flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm cursor-pointer transition-all",
-                        "hover:border-[#A62828]",
-                        isSelected
-                          ? "bg-[#A62828] text-white border-[#A62828]"
-                          : "bg-white text-gray-700 border-gray-300",
-                      )}
-                    >
-                      {option.label}
-
-                      {option.price > 0 && (
-                        <span
-                          className={cn(
-                            "text-xs",
-                            isSelected ? "text-white/90" : "text-gray-500",
-                          )}
-                        >
-                          +${option.price}
-                        </span>
-                      )}
-                    </Label>
-                  </div>
-                );
-              })}
-            </RadioGroup>
+            <p className="text-3xl sm:text-4xl font-bold font-playfair mt-4">
+              ${pricing.unitPrice.toFixed(2)}
+            </p>
           </div>
-        ))}
 
-        {/* CTA */}
-        <div className="px-4 sm:px-5 pt-6">
+          {/* Options */}
+          {product.options?.groups?.map((group) => (
+            <div key={group.key} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-base sm:text-lg">
+                  {group.label}
+                </p>
+                {group.required && (
+                  <Badge variant="outline" className="text-xs text-red-600 border-red-200 bg-red-50">
+                    Required
+                  </Badge>
+                )}
+              </div>
+
+              <RadioGroup className="flex flex-wrap gap-2">
+                {group.options.map((option) => {
+                  const isSelected =
+                    selectedOptions[group.key]?.label === option.label;
+
+                  return (
+                    <div key={option.label}>
+                      <RadioGroupItem
+                        value={option.label}
+                        id={`${group.key}-${option.label}`}
+                        className="peer sr-only"
+                        onClick={() => handleOptionChange(group.key, option)}
+                      />
+
+                      <Label
+                        htmlFor={`${group.key}-${option.label}`}
+                        className={cn(
+                          "inline-flex items-center px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-all duration-200 text-sm sm:text-base font-medium",
+                          isSelected
+                            ? "bg-primary text-white border-primary shadow-md"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+                        )}
+                      >
+                        {option.label}
+                        {option.price > 0 && (
+                          <span className={cn("ml-1", isSelected ? "text-white/90" : "text-gray-500")}>
+                            (+${option.price})
+                          </span>
+                        )}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </RadioGroup>
+            </div>
+          ))}
+
+          {/* Quantity Selector */}
+          <div className="space-y-3">
+            <p className="font-semibold text-base sm:text-lg">Quantity</p>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 bg-gray-100 rounded-xl px-4 py-2">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                  className="hover:bg-white rounded-lg p-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="size-5" />
+                </button>
+
+                <span className="text-lg font-semibold min-w-[2rem] text-center">
+                  {quantity}
+                </span>
+
+                <button
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="hover:bg-white rounded-lg p-2 transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="size-5" />
+                </button>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Total: </span>
+                <span className="text-xl font-bold font-playfair text-gray-900">
+                  ${pricing.totalPrice.toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Add to Cart Button */}
           <Button
             size="lg"
-            className="w-full"
-            disabled={!product?.in_stock || !hasRequiredOptions}
+            className="w-full text-base font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+            disabled={!product.in_stock || !hasRequiredOptions}
+            onClick={handleAddToCart}
           >
-            <Plus className="size-6" />
-            Add to cart
+            <ShoppingCart className="mr-2 size-5" />
+            Add to cart • ${pricing.totalPrice.toFixed(2)}
           </Button>
+
+          {!hasRequiredOptions && (
+            <p className="text-sm text-red-600 text-center">
+              Please select all required options
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

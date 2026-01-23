@@ -1,93 +1,95 @@
 import BusinessHours from "@/components/BusinessHours";
 import ProductList from "@/components/products/ProductList";
-import { Product } from "@/components/products/types/product";
-import SearchField from "@/components/SearchField";
+import SearchHeader from "@/components/products/SearchHeader";
 import ShopCarousel from "@/components/ShopCarousel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock3, Info } from "lucide-react";
-
-const products: Product[] = [
-  {
-    id: "1",
-    image: "/assets/jollof-rice-chicken.jpg",
-    title: "Jollof rice & Chicken",
-    description:
-      "Smoky, flavorful Jollof Rice cooked in tomato-pepper sauce, served with juicy seasoned chicken.",
-    amount: 10,
-    in_stock: true,
-    category: {
-      title: "Meals",
-      id: "1",
-    },
-  },
-  {
-    id: "2",
-    image: "/assets/amala.jpg",
-    title: "Egusi Soup & Swallow",
-    description:
-      "Traditional melon seed soup with spinach and assorted meats, served with your choice of swallow (eba, fufu, or pounded yam).",
-    amount: 10,
-    in_stock: false,
-    category: {
-      title: "Meals",
-      id: "1",
-    },
-  },
-];
+import { Clock3, Info, MapPin, Star } from "lucide-react";
 
 export default function Page() {
   return (
-    <main>
+    <main className="bg-gray-50">
       <ShopCarousel />
-      <div className="border-b">
-        <div className="container mx-auto p-4 sm:p-5">
-          <div className="flex flex-col gap-1.5">
-            <h1 className="text-xl sm:text-3xl font-semibold">
-              EddySylva Kitchen -{" "}
-              <span className="text-gray-500">Philadelphia</span>
-            </h1>
-            <h3 className="text-gray-500 text-base sm:text-lg font-medium mb-4">
-              255 South 60th Street Philadelphia, PA 19139
-            </h3>
-          </div>
-
-          <div className="mt-1.5 flex sm:flex-row flex-col justify-between sm:items-center gap-y-4">
-            <div className="flex sm:flex-row flex-col sm:items-center gap-x-2.5 gap-y-3">
-              <BusinessHours>
-                <Button
-                  variant="ghost"
-                  className="text-gray-500 -ml-3 w-fit"
-                  size="lg"
-                >
-                  <Clock3 className="size-4 sm:size-5" />
-                  <Badge className="bg-green-100 text-green-600 font-semibold border border-green-200 rounded-sm">
-                    Open
-                  </Badge>
-                  <p>Opens today at 11:00 AM</p>
-                  <Info className="size-4 sm:size-5 ml-1" />
-                </Button>
-              </BusinessHours>
-
-              {/* <Button variant="outline" size="lg">
-                <SendHorizontal />
-                Schedule delivery
-              </Button> */}
+      
+      {/* Restaurant Info Section */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
+          {/* Header */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-4xl font-bold font-playfair mb-2">
+                  EddySylva Kitchen
+                </h1>
+                <div className="flex items-center gap-2 text-gray-600 mb-3">
+                  <MapPin className="size-4 sm:size-5 shrink-0" />
+                  <p className="text-sm sm:text-base">
+                    Philadelphia • 255 South 60th Street, PA 19139
+                  </p>
+                </div>
+              </div>
+              
+              {/* Rating Badge */}
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <div className="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-full">
+                  <Star className="size-4 fill-current" />
+                  <span className="font-semibold text-sm">4.8</span>
+                </div>
+                <span className="text-xs text-gray-500">500+ ratings</span>
+              </div>
             </div>
 
-            <div>
-              <SearchField
-                wrapperClassName="sm:w-[400px] w-full rounded-full bg-gray-200 h-10 sm:h-12"
-                inputClassName="placeholder:font-medium sm:text-lg!"
-                placeholder="Search menu"
-              />
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2">
+              <Badge 
+                variant="outline" 
+                className="px-3 py-1 text-sm border-gray-300 bg-white"
+              >
+                African Cuisine
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className="px-3 py-1 text-sm border-gray-300 bg-white"
+              >
+                30-45 min
+              </Badge>
+              <Badge 
+                variant="outline" 
+                className="px-3 py-1 text-sm border-gray-300 bg-white"
+              >
+                $2.99 delivery
+              </Badge>
+            </div>
+          </div>
+
+          {/* Actions Bar */}
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
+            {/* Business Hours */}
+            <BusinessHours>
+              <Button
+                variant="ghost"
+                className="justify-start gap-2 px-4 py-3 h-auto border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                size="lg"
+              >
+                <Clock3 className="size-5 text-gray-600" />
+                <Badge className="bg-green-50 text-green-700 font-semibold border border-green-200 px-2.5 py-0.5">
+                  Open
+                </Badge>
+                <span className="text-sm text-gray-700">Opens at 11:00 AM</span>
+                <Info className="size-4 text-gray-400 ml-auto" />
+              </Button>
+            </BusinessHours>
+
+            {/* Search */}
+            <div className="sm:ml-auto">
+              <SearchHeader />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Products */}
-      <ProductList products={products} />
+      {/* Products Section */}
+      <ProductList />
     </main>
   );
 }

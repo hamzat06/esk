@@ -2,58 +2,105 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { Mail, Lock } from "lucide-react";
 
 export default function UserSigninForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   return (
-    <form className={cn("flex flex-col gap-4 sm:gap-6 py-5 pb-10", className)} {...props}>
+    <form className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h1 className="text-2xl font-bold">Sign in your account</h1>
-          <p className="text-muted-foreground text-sm text-balance">
-            Fill in the form below to sign in to your account
+        {/* Header */}
+        <div className="flex flex-col items-center gap-2 text-center mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold font-playfair">
+            Welcome back
+          </h1>
+          <p className="text-gray-600 text-sm sm:text-base">
+            Sign in to your account to continue
           </p>
         </div>
+
+        {/* Email Field */}
         <Field>
-          <FieldLabel htmlFor="email" className="sm:text-lg">
+          <FieldLabel htmlFor="email" className="text-base font-semibold">
             Email
           </FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter email"
-            className="bg-gray-200 h-10 sm:h-12 placeholder:font-medium sm:text-lg!"
-            required
-          />
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              className="pl-10 bg-gray-50 border-gray-300 focus:bg-white"
+              required
+            />
+          </div>
         </Field>
+
+        {/* Password Field */}
         <Field>
-          <FieldLabel htmlFor="password" className="sm:text-lg">Password</FieldLabel>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Enter password"
-            className="bg-gray-200 h-10 sm:h-12 placeholder:font-medium sm:text-lg!"
-            required
-          />
+          <div className="flex items-center justify-between">
+            <FieldLabel htmlFor="password" className="text-base font-semibold">
+              Password
+            </FieldLabel>
+            <Link 
+              href="/forgot-password" 
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              className="pl-10 bg-gray-50 border-gray-300 focus:bg-white"
+              required
+            />
+          </div>
         </Field>
-        <Field>
-          <Button type="submit" className="h-10 sm:h-12 mt-5" size="lg">
+
+        {/* Submit Button */}
+        <Field className="mt-2">
+          <Button type="submit" size="lg" className="w-full shadow-md hover:shadow-lg">
             Sign in
           </Button>
         </Field>
+
+        {/* Divider */}
+        <div className="relative my-2">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-4 text-gray-500 font-medium">
+              New to EddySylva Kitchen?
+            </span>
+          </div>
+        </div>
+
+        {/* Sign Up Link */}
         <Field>
-          <FieldDescription className="px-6 text-center sm:text-lg">
-            Don&apos;t have an account? <Link href="/signup">Sign up</Link>
-          </FieldDescription>
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="lg" 
+            className="w-full" 
+            asChild
+          >
+            <Link href="/signup">
+              Create an account
+            </Link>
+          </Button>
         </Field>
       </FieldGroup>
     </form>
