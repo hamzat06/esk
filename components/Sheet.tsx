@@ -22,34 +22,26 @@ const Sheet = (props: SheetProps) => {
       <SheetContent
         side={props?.side}
         className={cn(
-          "w-full sm:max-w-md px-0 py-0 flex flex-col",
+          "w-full rounded-2xl px-0 py-4 sm:max-w-1/3",
           props?.contentClassName,
         )}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b bg-white sticky top-0 z-10">
+        <div className="flex items-center px-5 justify-between">
           {typeof props?.title === "string" ? (
-            <h2 className="text-xl sm:text-2xl font-bold font-playfair">
-              {props?.title}
-            </h2>
+            <h2 className="text-2xl font-semibold">{props?.title}</h2>
           ) : (
             props?.title
           )}
 
           <Button
-            className="size-10 hover:bg-gray-100 rounded-full transition-colors"
+            className="w-fit size-10 hover:cursor-pointer"
             onClick={props?.onClose}
             variant="ghost"
-            size="icon"
           >
-            <XIcon className="size-5" />
+            <XIcon className="size-6" />
           </Button>
         </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {props?.children}
-        </div>
+        {props?.children}
       </SheetContent>
     </SheetShad>
   );

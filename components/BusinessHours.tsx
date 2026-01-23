@@ -28,7 +28,7 @@ const BusinessHours = (props: BusinessHours) => {
   return (
     <Dialog>
       <DialogTrigger asChild>{props?.children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md px-4">
         <DialogHeader>
           <div className="flex flex-col items-center gap-3 mb-2">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
@@ -44,7 +44,7 @@ const BusinessHours = (props: BusinessHours) => {
           {businessHours.map((schedule, index) => (
             <div
               key={schedule.day}
-              className={`flex items-center justify-between px-4 py-3.5 rounded-xl transition-colors ${
+              className={`flex items-center justify-between px-3 py-3.5 rounded-xl transition-colors ${
                 schedule.isToday
                   ? "bg-primary/10 border-2 border-primary/20"
                   : "hover:bg-gray-50"

@@ -73,14 +73,14 @@ const CateringServiceModal = (props: CateringModalProps) => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="flex-1 sm:flex-1 rounded-xl border-2"
+              className="sm:flex-1 rounded-xl border-2"
             >
               Not now
             </Button>
           </DialogClose>
           <Button 
             size="lg" 
-            className="flex-1 sm:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow"
+            className="sm:flex-1 rounded-xl shadow-md hover:shadow-lg transition-shadow"
           >
             Book us
           </Button>

@@ -56,7 +56,7 @@ const ProductCard = ({
         </p>
 
         <span className="text-xl sm:text-3xl font-semibold font-playfair">
-          $ {product.amount}
+          $ {product.amount.toFixed(2)}
         </span>
       </div>
     </div>

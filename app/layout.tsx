@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/providers";
+import GlobalToaster from "@/components/GlobalToaster";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -27,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <GlobalToaster />
+        </Providers>
       </body>
     </html>
   );

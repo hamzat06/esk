@@ -5,6 +5,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "./stores/cartStore";
+import { toast } from "react-hot-toast";
 
 const Cart = () => {
   const items = useCartStore((s) => s.items);
@@ -29,8 +30,12 @@ const Cart = () => {
             />
           </svg>
         </div>
-        <p className="text-gray-800 text-xl font-semibold">Your cart is empty</p>
-        <p className="text-gray-400 text-sm mt-2">Add delicious items to get started</p>
+        <p className="text-gray-800 text-xl font-semibold">
+          Your cart is empty
+        </p>
+        <p className="text-gray-400 text-sm mt-2">
+          Add delicious items to get started
+        </p>
       </div>
     );
   }
@@ -80,9 +85,12 @@ const Cart = () => {
                   <h4 className="font-semibold text-base sm:text-lg line-clamp-2">
                     {item.title}
                   </h4>
-                  
+
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => {
+                      removeItem(item.id);
+                      toast.success("Item removed from cart!");
+                    }}
                     className="shrink-0 p-1.5 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                     aria-label="Remove item"
                   >
@@ -121,7 +129,7 @@ const Cart = () => {
                       <Minus className="size-4" />
                     </button>
 
-                    <span className="text-sm font-semibold min-w-[1.5rem] text-center">
+                    <span className="text-sm font-semibold min-w-6 text-center">
                       {item.quantity}
                     </span>
 
@@ -169,7 +177,10 @@ const Cart = () => {
           </span>
         </div>
 
-        <Button size="lg" className="w-full text-base font-semibold rounded-full">
+        <Button
+          size="lg"
+          className="w-full text-base font-semibold rounded-full"
+        >
           Proceed to Checkout
         </Button>
       </div>

@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "../cart/stores/cartStore";
 import { calculateCartPricing } from "@/lib/calculateCartPricing";
 import { CartItem } from "../cart/types/cart";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-hot-toast";
 
 interface ProductDetailsModalProps {
   product?: Product;
@@ -63,7 +65,7 @@ const ProductDetailsModal = ({
     if (!product) return;
 
     const cartItem: CartItem = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       productId: product.id,
       title: product.title,
       image: product.image,
@@ -78,6 +80,7 @@ const ProductDetailsModal = ({
 
     addToCart(cartItem);
     setQuantity(1);
+    toast.success("Item added to cart!");
     setSelectedOptions({});
     onClose?.();
   }
@@ -99,10 +102,7 @@ const ProductDetailsModal = ({
             alt={product?.title || ""}
             src={product?.image || "/assets/jollof-rice-chicken.jpg"}
             fill
-            className={cn(
-              "object-cover",
-              !product?.in_stock && "grayscale",
-            )}
+            className={cn("object-cover", !product?.in_stock && "grayscale")}
           />
 
           {!product?.in_stock && (
@@ -135,7 +135,10 @@ const ProductDetailsModal = ({
                   {group.label}
                 </p>
                 {group.required && (
-                  <Badge variant="outline" className="text-xs text-red-600 border-red-200 bg-red-50">
+                  <Badge
+                    variant="outline"
+                    className="text-xs text-red-600 border-red-200 bg-red-50"
+                  >
                     Required
                   </Badge>
                 )}
@@ -166,7 +169,12 @@ const ProductDetailsModal = ({
                       >
                         {option.label}
                         {option.price > 0 && (
-                          <span className={cn("ml-1", isSelected ? "text-white/90" : "text-gray-500")}>
+                          <span
+                            className={cn(
+                              "ml-1",
+                              isSelected ? "text-white/90" : "text-gray-500",
+                            )}
+                          >
                             (+${option.price})
                           </span>
                         )}

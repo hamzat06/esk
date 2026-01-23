@@ -1,16 +1,25 @@
 import BusinessHours from "@/components/BusinessHours";
 import ProductList from "@/components/products/ProductList";
+import ProductsGridSkeleton from "@/components/products/ProductsGridSkeleton";
 import SearchHeader from "@/components/products/SearchHeader";
 import ShopCarousel from "@/components/ShopCarousel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { fetchCategories } from "@/lib/queries/categories";
+import { fetchProducts } from "@/lib/queries/products";
 import { Clock3, Info, MapPin, Star } from "lucide-react";
+import { Suspense } from "react";
 
-export default function Page() {
+export default async function Page() {
+  const [products, categories] = await Promise.all([
+    fetchProducts(),
+    fetchCategories(),
+  ]);
+
   return (
     <main className="bg-gray-50">
       <ShopCarousel />
-      
+
       {/* Restaurant Info Section */}
       <div className="bg-white border-b shadow-sm">
         <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
@@ -28,7 +37,7 @@ export default function Page() {
                   </p>
                 </div>
               </div>
-              
+
               {/* Rating Badge */}
               <div className="flex flex-col items-end gap-1 shrink-0">
                 <div className="flex items-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-full">
@@ -41,20 +50,20 @@ export default function Page() {
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2">
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
                 African Cuisine
               </Badge>
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
                 30-45 min
               </Badge>
-              <Badge 
-                variant="outline" 
+              <Badge
+                variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
                 $2.99 delivery
@@ -88,8 +97,9 @@ export default function Page() {
         </div>
       </div>
 
-      {/* Products Section */}
-      <ProductList />
+      <Suspense fallback={<ProductsGridSkeleton />}>
+        <ProductList products={products} categories={categories} />
+      </Suspense>
     </main>
   );
 }

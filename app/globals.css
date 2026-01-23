@@ -79,6 +79,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --success-bg: #22c55e;
+  --success-color: #ffffff;
+  --error-bg: #ef4444;
+  --error-color: #ffffff;
+  --info-bg: #3b82f6;
+  --info-color: #ffffff;
+  --warning-bg: #facc15;
+  --warning-color: #000000;
+  --loading-bg: #6366f1;
+  --loading-color: #ffffff;
 }
 
 .dark {
@@ -113,6 +123,16 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --success-bg: #15803d;
+  --success-color: #ffffff;
+  --error-bg: #b91c1c;
+  --error-color: #ffffff;
+  --info-bg: #2563eb;
+  --info-color: #ffffff;
+  --warning-bg: #ca8a04;
+  --warning-color: #000000;
+  --loading-bg: #4f46e5;
+  --loading-color: #ffffff;
 }
 
 @layer base {
