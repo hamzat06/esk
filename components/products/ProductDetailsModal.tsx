@@ -95,7 +95,7 @@ const ProductDetailsModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[85vh] overflow-y-auto">
         {/* Product Image */}
         <div className="relative w-full h-72 sm:h-96">
           <Image

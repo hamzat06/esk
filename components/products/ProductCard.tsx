@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
 import { Plus } from "lucide-react";
 import { highlightText } from "@/lib/highlightText";
+import { CldImage } from "next-cloudinary";
 
 interface ProductCardProps {
   product: Product;
@@ -21,14 +22,17 @@ const ProductCard = ({
   return (
     <div className="group sm:hover:cursor-pointer" onClick={onClick}>
       <div className="relative w-full aspect-square rounded-xl overflow-hidden">
-        <Image
-          src={product.image || "/assets/jollof-rice-chicken.jpg"}
+        <CldImage
           alt={product.title}
-          fill
-          quality={85}
+          src={product.image || "cld-sample-5"}
           className={`object-cover transition-transform duration-300 group-hover:scale-110 ${
             !product.in_stock && "grayscale"
           }`}
+          fill
+          crop={{
+            type: "auto",
+            source: true,
+          }}
         />
 
         {!product.in_stock && (
