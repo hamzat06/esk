@@ -18,3 +18,4 @@ export type CartItem = {
   unitPrice: number;
   totalPrice: number;
 };
+

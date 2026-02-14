@@ -6,14 +6,14 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  // CarouselNext,
+  // CarouselPrevious,
 } from "@/components/ui/carousel";
 import Image from "next/image";
 
 const ShopCarousel = () => {
   const autoplay = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true }),
+    Autoplay({ delay: 3000, stopOnInteraction: false }),
   );
 
   const slides = [
@@ -21,10 +21,10 @@ const ShopCarousel = () => {
       image: "/assets/banner-1.png",
       alt: "Featured dishes from EddySylva Kitchen",
     },
-    {
-      image: "/assets/banner-2.png",
-      alt: "Special menu items",
-    },
+    // {
+    //   image: "/assets/banner-2.png",
+    //   alt: "Special menu items",
+    // },
   ];
 
   return (
@@ -61,14 +61,14 @@ const ShopCarousel = () => {
         </CarouselContent>
 
         {/* Navigation Arrows - Hidden on mobile */}
-        <div className="hidden sm:block">
+        {/* <div className="hidden sm:block">
           <CarouselPrevious className="left-4 bg-white/90 hover:bg-white border-none shadow-lg" />
           <CarouselNext className="right-4 bg-white/90 hover:bg-white border-none shadow-lg" />
-        </div>
+        </div> */}
       </Carousel>
 
       {/* Carousel Indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+      {/* <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
         {slides.map((_, index) => (
           <div
             key={index}
@@ -76,7 +76,7 @@ const ShopCarousel = () => {
             aria-label={`Slide ${index + 1}`}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };

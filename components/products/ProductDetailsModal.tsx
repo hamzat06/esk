@@ -15,6 +15,7 @@ import { calculateCartPricing } from "@/lib/calculateCartPricing";
 import { CartItem } from "../cart/types/cart";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-hot-toast";
+import { CldImage } from "next-cloudinary";
 
 interface ProductDetailsModalProps {
   product?: Product;
@@ -95,15 +96,30 @@ const ProductDetailsModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg p-0 gap-0 max-h-[90vh] overflow-y-auto">
         {/* Product Image */}
-        <div className="relative w-full h-72 sm:h-96">
-          <Image
-            alt={product?.title || ""}
-            src={product?.image || "/assets/jollof-rice-chicken.jpg"}
-            fill
-            className={cn("object-cover", !product?.in_stock && "grayscale")}
-          />
+        <div className="relative w-full h-72 sm:h-80">
+          {product.image ? (
+            <CldImage
+              alt={product.title}
+              src={product.image}
+              className={`object-cover ${!product.in_stock && "grayscale"}`}
+              fill
+              crop={{
+                type: "auto",
+                source: true,
+              }}
+            />
+          ) : (
+            <Image
+              src="/assets/mustard-back.jpg"
+              alt="Mockup"
+              className={`object-cover size-auto ${
+                !product.in_stock && "grayscale"
+              }`}
+              fill
+            />
+          )}
 
           {!product?.in_stock && (
             <Badge className="absolute right-4 top-4 bg-white text-red-500 font-semibold px-3 py-1.5 text-sm shadow-md">

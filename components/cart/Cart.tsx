@@ -1,13 +1,15 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link"; // ADD THIS IMPORT
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "./stores/cartStore";
 import { toast } from "react-hot-toast";
+import { CldImage } from "next-cloudinary";
 
-const Cart = () => {
+const Cart = ({ onClose }: { onClose: PureFunc }) => {
   const items = useCartStore((s) => s.items);
   const updateQty = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
@@ -71,12 +73,25 @@ const Cart = () => {
             <div className="flex gap-4">
               {/* Image */}
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-xl overflow-hidden bg-gray-100">
-                <Image
-                  src={item.image || "/assets/jollof-rice-chicken.jpg"}
-                  alt={item.title}
-                  fill
-                  className="object-cover"
-                />
+                {item.image ? (
+                  <CldImage
+                    alt={item.title}
+                    src={item.image}
+                    className="object-cover"
+                    fill
+                    crop={{
+                      type: "auto",
+                      source: true,
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src="/assets/mustard-back.jpg"
+                    alt="Mockup"
+                    className="object-cover"
+                    fill
+                  />
+                )}
               </div>
 
               {/* Info */}
@@ -177,12 +192,15 @@ const Cart = () => {
           </span>
         </div>
 
-        <Button
-          size="lg"
-          className="w-full text-base font-semibold rounded-full"
-        >
-          Proceed to Checkout
-        </Button>
+        <Link href="/checkout" className="block">
+          <Button
+            onClick={onClose}
+            size="lg"
+            className="w-full text-base font-semibold rounded-full"
+          >
+            Proceed to Checkout
+          </Button>
+        </Link>
       </div>
     </div>
   );

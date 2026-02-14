@@ -4,12 +4,7 @@ import { ShoppingBasket, UserCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "./ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Button } from "./ui/button";
 import { XIcon } from "lucide-react";
 import useToggle from "@/hooks/useToggle";
@@ -42,7 +37,10 @@ const Navbar = () => {
     <>
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto flex items-center justify-between p-4 sm:p-5">
-          <Link href="/" className="transition-transform hover:scale-105 active:scale-95">
+          <Link
+            href="/"
+            className="transition-transform hover:scale-105 active:scale-95"
+          >
             <Image
               width={100}
               height={100}
@@ -70,7 +68,7 @@ const Navbar = () => {
               aria-label="Shopping cart"
             >
               <ShoppingBasket className="size-5 sm:size-6" />
-              
+
               {/* Cart Badge */}
               {cartItemCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-5 h-5 flex items-center justify-center px-1 shadow-md border-2 border-white animate-in fade-in zoom-in duration-200">
@@ -113,7 +111,7 @@ const Navbar = () => {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto">
-            {isAuth ? <Auth /> : <Cart />}
+            {isAuth ? <Auth /> : <Cart onClose={handleClose} />}
           </div>
         </SheetContent>
       </Sheet>

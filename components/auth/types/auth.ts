@@ -15,3 +15,28 @@ export const loginSchema = z.object({
 });
 
 export type LoginT = z.infer<typeof loginSchema>;
+
+export type UserRole = "customer" | "admin";
+
+export type UserProfile = {
+  id: string; // matches auth.users.id
+  fullName: string;
+  email: string;
+  phone?: string | null;
+  role: UserRole; // customer or admin
+
+  // Default delivery address (optional, only for customers)
+  defaultAddress?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  } | null;
+
+  // Admin-specific fields (optional)
+  permissions?: string[] | null; // e.g., ["manage_orders", "manage_products"]
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+};
