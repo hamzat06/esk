@@ -39,7 +39,7 @@ const ProductCard = ({
           <Image
             src="/assets/mustard-back.jpg"
             alt="Mockup"
-            className={`object-cover object-center transition-transform duration-300 group-hover:scale-110 ${
+            className={`object-cover object-center transition-transform duration-300 group-hover:scale-110 opacity-50 ${
               !product.in_stock && "grayscale"
             }`}
             fill
