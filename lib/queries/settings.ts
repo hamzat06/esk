@@ -22,6 +22,31 @@ export type Holiday = {
   message?: string;
 };
 
+export type BannerImage = {
+  id: string;
+  image: string;
+  alt: string;
+  order: number;
+};
+
+export type ShopInfo = {
+  name: string;
+  cuisine: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  deliveryTimeMin: number;
+  deliveryTimeMax: number;
+  deliveryFee: number;
+  minimumOrder: number;
+  description?: string;
+};
+
+// ========== Opening Hours Functions ==========
+
 export async function getOpeningHours(): Promise<OpeningHours> {
   const { data, error } = await supabase
     .from("shop_settings")
@@ -108,7 +133,8 @@ export async function getNextOpeningTime(): Promise<string | null> {
   }
 }
 
-// Holiday functions
+// ========== Holiday Functions ==========
+
 export async function getHolidays(): Promise<Holiday[]> {
   const { data, error } = await supabase
     .from("shop_settings")
@@ -157,4 +183,122 @@ export async function removeHoliday(date: string): Promise<void> {
   const holidays = await getHolidays();
   const filtered = holidays.filter((h) => h.date !== date);
   await updateHolidays(filtered);
+}
+
+
+
+// ========== Banner Functions ==========
+
+export async function getBanners(): Promise<BannerImage[]> {
+  const { data, error } = await supabase
+    .from("shop_settings")
+    .select("value")
+    .eq("key", "shop_banners")
+    .single();
+
+  if (error) {
+    // If the key doesn't exist, return empty array (no default)
+    if (error.code === "PGRST116") {
+      return [];
+    }
+    throw new Error(error.message);
+  }
+
+  return (data.value as BannerImage[]) || [];
+}
+
+export async function updateBanners(banners: BannerImage[]): Promise<void> {
+  // First, check if the setting exists
+  const { data: existing } = await supabase
+    .from("shop_settings")
+    .select("id")
+    .eq("key", "shop_banners")
+    .single();
+
+  if (existing) {
+    // Update existing
+    const { error } = await supabase
+      .from("shop_settings")
+      .update({ value: banners, updated_at: new Date().toISOString() })
+      .eq("key", "shop_banners");
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } else {
+    // Insert new
+    const { error } = await supabase.from("shop_settings").insert({
+      key: "shop_banners",
+      value: banners,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+}
+
+// ========== Shop Info Functions ==========
+
+export async function getShopInfo(): Promise<ShopInfo> {
+  const { data, error } = await supabase
+    .from("shop_settings")
+    .select("value")
+    .eq("key", "shop_info")
+    .single();
+
+  if (error) {
+    // Return default values if not set
+    if (error.code === "PGRST116") {
+      return {
+        name: "EddySylva Kitchen",
+        cuisine: "African Cuisine",
+        address: "255 South 60th Street",
+        city: "Philadelphia",
+        state: "PA",
+        zipCode: "19139",
+        phone: "",
+        email: "",
+        deliveryTimeMin: 30,
+        deliveryTimeMax: 45,
+        deliveryFee: 2.99,
+        minimumOrder: 10.0,
+        description: "",
+      };
+    }
+    throw new Error(error.message);
+  }
+
+  return data.value as ShopInfo;
+}
+
+export async function updateShopInfo(shopInfo: ShopInfo): Promise<void> {
+  // First, check if the setting exists
+  const { data: existing } = await supabase
+    .from("shop_settings")
+    .select("id")
+    .eq("key", "shop_info")
+    .single();
+
+  if (existing) {
+    // Update existing
+    const { error } = await supabase
+      .from("shop_settings")
+      .update({ value: shopInfo, updated_at: new Date().toISOString() })
+      .eq("key", "shop_info");
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } else {
+    // Insert new
+    const { error } = await supabase.from("shop_settings").insert({
+      key: "shop_info",
+      value: shopInfo,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
 }

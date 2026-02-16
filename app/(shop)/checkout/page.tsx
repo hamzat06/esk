@@ -23,6 +23,15 @@ export default async function CheckoutPage() {
     .eq("id", user.id)
     .single();
 
+  // Fetch shop info for delivery fee
+  const { data: shopInfoData } = await supabase
+    .from("shop_settings")
+    .select("value")
+    .eq("key", "shop_info")
+    .single();
+
+  const deliveryFee = shopInfoData?.value?.deliveryFee || 2.99;
+
   return (
     <main className="bg-gray-50 min-h-screen">
       <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8 max-w-4xl">
@@ -39,6 +48,7 @@ export default async function CheckoutPage() {
         <CheckoutForm
           userEmail={user.email || ""}
           defaultAddress={profile?.default_address}
+          deliveryFee={deliveryFee}
         />
       </div>
     </main>

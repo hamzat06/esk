@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import ContentTabs, { TabItem } from "@/components/ContentTabs";
 import {
   Select,
@@ -15,7 +16,18 @@ import {
 import { toast } from "react-hot-toast";
 import { updateOrderStatus, OrderStatus } from "@/lib/queries/admin/orders";
 import { format } from "date-fns";
-import { Eye } from "lucide-react";
+import {
+  Eye,
+  Search,
+  Clock,
+  CheckCircle,
+  ChefHat,
+  PackageCheck,
+  Truck,
+  XCircle,
+  DollarSign,
+  ShoppingBag,
+} from "lucide-react";
 
 interface Order {
   id: string;
@@ -56,14 +68,26 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: "bg-red-100 text-red-800",
 };
 
-export default function OrdersManager({
-  initialOrders,
-}: OrdersManagerProps) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const statusIcons: Record<OrderStatus, any> = {
+  pending: Clock,
+  confirmed: CheckCircle,
+  preparing: ChefHat,
+  ready: PackageCheck,
+  delivered: Truck,
+  cancelled: XCircle,
+};
+
+export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [selectedTab, setSelectedTab] = useState("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  const handleStatusChange = async (
+    orderId: string,
+    newStatus: OrderStatus,
+  ) => {
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrders((prev) =>
@@ -88,10 +112,30 @@ export default function OrdersManager({
     { value: "cancelled", label: "Cancelled" },
   ];
 
-  const filteredOrders =
-    selectedTab === "all"
-      ? orders
-      : orders.filter((order) => order.status === selectedTab);
+  // Filter orders by tab and search
+  const filteredOrders = orders.filter((order) => {
+    const matchesTab = selectedTab === "all" || order.status === selectedTab;
+    const matchesSearch =
+      order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.profile.full_name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      order.profile.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesTab && matchesSearch;
+  });
+
+  // Calculate stats
+  const stats = {
+    total: orders.length,
+    totalRevenue: orders.reduce((sum, order) => sum + Number(order.total), 0),
+    pending: orders.filter((o) => o.status === "pending").length,
+    confirmed: orders.filter((o) => o.status === "confirmed").length,
+    preparing: orders.filter((o) => o.status === "preparing").length,
+    ready: orders.filter((o) => o.status === "ready").length,
+    delivered: orders.filter((o) => o.status === "delivered").length,
+    cancelled: orders.filter((o) => o.status === "cancelled").length,
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
@@ -102,6 +146,88 @@ export default function OrdersManager({
         </h1>
         <p className="text-gray-600">Manage customer orders</p>
       </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Total Orders</p>
+                <p className="text-2xl font-bold font-playfair">
+                  {stats.total}
+                </p>
+              </div>
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <ShoppingBag className="size-6 text-primary" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
+                <p className="text-2xl font-bold font-playfair text-green-600">
+                  ${stats.totalRevenue.toFixed(2)}
+                </p>
+              </div>
+              <div className="p-3 bg-green-100 rounded-xl">
+                <DollarSign className="size-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Pending</p>
+                <p className="text-2xl font-bold font-playfair text-yellow-600">
+                  {stats.pending}
+                </p>
+              </div>
+              <div className="p-3 bg-yellow-100 rounded-xl">
+                <Clock className="size-6 text-yellow-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Completed</p>
+                <p className="text-2xl font-bold font-playfair text-gray-600">
+                  {stats.delivered}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-xl">
+                <Truck className="size-6 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search Bar */}
+      <Card className="mb-6">
+        <CardContent className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+            <Input
+              placeholder="Search by order number or customer name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <ContentTabs
@@ -115,97 +241,112 @@ export default function OrdersManager({
       {filteredOrders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-gray-500">No orders found</p>
+            <p className="text-gray-500">
+              {searchQuery
+                ? "No orders found matching your search"
+                : "No orders found"}
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
-          {filteredOrders.map((order) => (
-            <Card key={order.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 sm:p-6">
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {/* Order Info */}
-                  <div>
-                    <p className="text-sm text-gray-500">Order #</p>
-                    <p className="font-bold font-playfair">
-                      {order.order_number}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {format(new Date(order.created_at), "MMM d, h:mm a")}
-                    </p>
+          {filteredOrders.map((order) => {
+            const StatusIcon = statusIcons[order.status];
+            return (
+              <Card
+                key={order.id}
+                className="hover:shadow-md transition-shadow"
+              >
+                <CardContent className="p-4 sm:p-6">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {/* Order Info */}
+                    <div>
+                      <p className="text-sm text-gray-500">Order #</p>
+                      <p className="font-bold font-playfair">
+                        {order.order_number}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {format(new Date(order.created_at), "MMM d, h:mm a")}
+                      </p>
+                    </div>
+
+                    {/* Customer */}
+                    <div>
+                      <p className="text-sm text-gray-500">Customer</p>
+                      <p className="font-semibold">{order.profile.full_name}</p>
+                      <p className="text-xs text-gray-600">
+                        {order.profile.email}
+                      </p>
+                    </div>
+
+                    {/* Total */}
+                    <div>
+                      <p className="text-sm text-gray-500">Total</p>
+                      <p className="text-2xl font-bold font-playfair text-primary">
+                        ${Number(order.total).toFixed(2)}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        {order.items.length} items
+                      </p>
+                    </div>
+
+                    {/* Status & Actions */}
+                    <div className="flex flex-col gap-2">
+                      <Badge
+                        className={`${statusColors[order.status]} flex items-center gap-1.5 w-fit`}
+                      >
+                        <StatusIcon className="size-3.5" />
+                        {order.status}
+                      </Badge>
+                      <Select
+                        value={order.status}
+                        onValueChange={(value) =>
+                          handleStatusChange(order.id, value as OrderStatus)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="confirmed">Confirmed</SelectItem>
+                          <SelectItem value="preparing">Preparing</SelectItem>
+                          <SelectItem value="ready">Ready</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedOrder(order)}
+                      >
+                        <Eye className="size-4" />
+                        View Details
+                      </Button>
+                    </div>
                   </div>
 
-                  {/* Customer */}
-                  <div>
-                    <p className="text-sm text-gray-500">Customer</p>
-                    <p className="font-semibold">{order.profile.full_name}</p>
-                    <p className="text-xs text-gray-600">{order.profile.email}</p>
+                  {/* Order Items Preview */}
+                  <div className="mt-4 pt-4 border-t">
+                    <p className="text-sm font-semibold mb-2">Items:</p>
+                    <div className="text-sm text-gray-600">
+                      {order.items.map((item, idx) => (
+                        <span key={idx}>
+                          {item.quantity}x {item.title}
+                          {idx < order.items.length - 1 && ", "}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-
-                  {/* Total */}
-                  <div>
-                    <p className="text-sm text-gray-500">Total</p>
-                    <p className="text-2xl font-bold font-playfair text-primary">
-                      ${Number(order.total).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-gray-600">
-                      {order.items.length} items
-                    </p>
-                  </div>
-
-                  {/* Status & Actions */}
-                  <div className="flex flex-col gap-2">
-                    <Badge className={statusColors[order.status]}>
-                      {order.status}
-                    </Badge>
-                    <Select
-                      value={order.status}
-                      onValueChange={(value) =>
-                        handleStatusChange(order.id, value as OrderStatus)
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="confirmed">Confirmed</SelectItem>
-                        <SelectItem value="preparing">Preparing</SelectItem>
-                        <SelectItem value="ready">Ready</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedOrder(order)}
-                    >
-                      <Eye className="size-4" />
-                      View Details
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Order Items Preview */}
-                <div className="mt-4 pt-4 border-t">
-                  <p className="text-sm font-semibold mb-2">Items:</p>
-                  <div className="text-sm text-gray-600">
-                    {order.items.map((item, idx) => (
-                      <span key={idx}>
-                        {item.quantity}x {item.title}
-                        {idx < order.items.length - 1 && ", "}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {/* Simple Order Details Modal */}
+      {/* Order Details Modal */}
       {selectedOrder && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
@@ -224,8 +365,12 @@ export default function OrdersManager({
               <div>
                 <h3 className="font-semibold mb-2">Customer</h3>
                 <p>{selectedOrder.profile.full_name}</p>
-                <p className="text-sm text-gray-600">{selectedOrder.profile.email}</p>
-                <p className="text-sm text-gray-600">{selectedOrder.profile.phone}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedOrder.profile.email}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {selectedOrder.profile.phone}
+                </p>
               </div>
 
               <div>

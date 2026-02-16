@@ -7,10 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { fetchCategories } from "@/lib/queries/categories";
 import { fetchProducts } from "@/lib/queries/products";
+import { createClient } from "@/lib/supabase/server";
 import { Clock3, Info, MapPin, Star } from "lucide-react";
 import { Suspense } from "react";
 
 export default async function Page() {
+  const supabase = await createClient();
+
+  // Fetch shop info
+  const { data: shopInfoData } = await supabase
+    .from("shop_settings")
+    .select("value")
+    .eq("key", "shop_info")
+    .single();
+
+  const shopInfo = shopInfoData?.value || {
+    name: "EddySylva Kitchen",
+    cuisine: "African Cuisine",
+    address: "255 South 60th Street",
+    city: "Philadelphia",
+    state: "PA",
+    zipCode: "19139",
+    deliveryTimeMin: 30,
+    deliveryTimeMax: 45,
+    deliveryFee: 2.99,
+  };
+
   const [products, categories] = await Promise.all([
     fetchProducts(),
     fetchCategories(),
@@ -28,12 +50,13 @@ export default async function Page() {
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <h1 className="text-2xl sm:text-4xl font-bold font-playfair mb-2">
-                  EddySylva Kitchen
+                  {shopInfo.name}
                 </h1>
                 <div className="flex items-center gap-2 text-gray-600 mb-3">
                   <MapPin className="size-4 sm:size-5 shrink-0" />
                   <p className="text-sm sm:text-base">
-                    Philadelphia • 255 South 60th Street, PA 19139
+                    {shopInfo.city} • {shopInfo.address}, {shopInfo.state}{" "}
+                    {shopInfo.zipCode}
                   </p>
                 </div>
               </div>
@@ -54,19 +77,19 @@ export default async function Page() {
                 variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
-                African Cuisine
+                {shopInfo.cuisine}
               </Badge>
               <Badge
                 variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
-                30-45 min
+                {shopInfo.deliveryTimeMin}-{shopInfo.deliveryTimeMax} min
               </Badge>
               <Badge
                 variant="outline"
                 className="px-3 py-1 text-sm border-gray-300 bg-white"
               >
-                $2.99 delivery
+                ${shopInfo.deliveryFee.toFixed(2)} delivery
               </Badge>
             </div>
           </div>

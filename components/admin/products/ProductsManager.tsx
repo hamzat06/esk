@@ -3,9 +3,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  Package,
+  PackageCheck,
+  PackageX,
+  DollarSign,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
-import { deleteProduct, toggleProductStock } from "@/lib/queries/admin/products";
+import {
+  deleteProduct,
+  toggleProductStock,
+} from "@/lib/queries/admin/products";
 import ProductDialog from "./ProductDialog";
 import { Product } from "@/components/products/types/product";
 import { Category } from "@/lib/queries/categories";
@@ -38,6 +50,15 @@ export default function ProductsManager({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Calculate stats
+  const totalProducts = products.length;
+  const inStockProducts = products.filter((p) => p.in_stock).length;
+  const outOfStockProducts = products.filter((p) => !p.in_stock).length;
+  const averagePrice =
+    products.length > 0
+      ? products.reduce((sum, p) => sum + Number(p.amount), 0) / products.length
+      : 0;
 
   const handleAdd = () => {
     setSelectedProduct(null);
@@ -77,14 +98,15 @@ export default function ProductsManager({
     }
   };
 
-  const handleStockToggle = async (productId: string, currentStock: boolean) => {
+  const handleStockToggle = async (
+    productId: string,
+    currentStock: boolean,
+  ) => {
     try {
       await toggleProductStock(productId, !currentStock);
       setProducts((prev) =>
         prev.map((prod) =>
-          prod.id === productId
-            ? { ...prod, in_stock: !currentStock }
-            : prod,
+          prod.id === productId ? { ...prod, in_stock: !currentStock } : prod,
         ),
       );
       toast.success(
@@ -119,6 +141,73 @@ export default function ProductsManager({
           </Button>
         </div>
 
+        {/* Stats Cards */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Package className="size-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total Products</p>
+                  <p className="text-2xl font-bold font-playfair">
+                    {totalProducts}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-green-100 rounded-xl">
+                  <PackageCheck className="size-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">In Stock</p>
+                  <p className="text-2xl font-bold font-playfair">
+                    {inStockProducts}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-red-100 rounded-xl">
+                  <PackageX className="size-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Out of Stock</p>
+                  <p className="text-2xl font-bold font-playfair">
+                    {outOfStockProducts}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-100 rounded-xl">
+                  <DollarSign className="size-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Average Price</p>
+                  <p className="text-2xl font-bold font-playfair">
+                    ${averagePrice.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Products Grid */}
         {products.length === 0 ? (
           <Card>
@@ -151,7 +240,7 @@ export default function ProductsManager({
                       src="/assets/mustard-back.jpg"
                       alt="Placeholder"
                       fill
-                      className="object-cover"
+                      className="object-cover opacity-50"
                     />
                   )}
                   {!product.in_stock && (

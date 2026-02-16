@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
     const { items, deliveryAddress, notes } = body;
 
     if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: "Cart is empty" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
     if (!deliveryAddress) {
@@ -35,12 +32,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ✅ FETCH DELIVERY FEE FROM DATABASE
+    const { data: shopInfoData } = await supabase
+      .from("shop_settings")
+      .select("value")
+      .eq("key", "shop_info")
+      .single();
+
+    const deliveryFee = shopInfoData?.value?.deliveryFee || 2.99;
+
     // Calculate totals
     const subtotal = items.reduce(
       (sum: number, item: { totalPrice: number }) => sum + item.totalPrice,
       0,
     );
-    const deliveryFee = 2.99;
+    // ❌ REMOVED: const deliveryFee = 2.99;
     const tax = subtotal * 0.08; // 8% tax
     const total = subtotal + deliveryFee + tax;
 
@@ -73,24 +79,28 @@ export async function POST(request: NextRequest) {
     if (orderError) throw orderError;
 
     // Create Stripe checkout session
-    const lineItems = items.map((item: {
-      title: string;
-      image?: string;
-      totalPrice: number;
-      quantity: number;
-    }) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.title,
-          images: item.image
-            ? [`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${item.image}`]
-            : [],
+    const lineItems = items.map(
+      (item: {
+        title: string;
+        image?: string;
+        totalPrice: number;
+        quantity: number;
+      }) => ({
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.title,
+            images: item.image
+              ? [
+                  `https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload/${item.image}`,
+                ]
+              : [],
+          },
+          unit_amount: Math.round((item.totalPrice / item.quantity) * 100), // Convert to cents
         },
-        unit_amount: Math.round((item.totalPrice / item.quantity) * 100), // Convert to cents
-      },
-      quantity: item.quantity,
-    }));
+        quantity: item.quantity,
+      }),
+    );
 
     // Add delivery fee as a line item
     lineItems.push({
@@ -141,10 +151,10 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: unknown) {
     console.error("Checkout error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to create checkout session";
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 },
-    );
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to create checkout session";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

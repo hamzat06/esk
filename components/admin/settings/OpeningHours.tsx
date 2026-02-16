@@ -5,9 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-hot-toast";
-import { OpeningHours as OpeningHoursType, updateOpeningHours } from "@/lib/queries/settings";
+import {
+  OpeningHours as OpeningHoursType,
+  updateOpeningHours,
+} from "@/lib/queries/settings";
 
 interface OpeningHoursProps {
   initialHours: OpeningHoursType;
@@ -23,20 +33,81 @@ const days = [
   { key: "sunday", label: "Sunday" },
 ] as const;
 
+// Helper functions to convert between 24h and 12h format
+function convertTo24Hour(time12h: string, period: string): string {
+  const [hours, minutes] = time12h.split(":");
+  let hour = parseInt(hours);
+
+  if (period === "PM" && hour !== 12) {
+    hour += 12;
+  } else if (period === "AM" && hour === 12) {
+    hour = 0;
+  }
+
+  return `${hour.toString().padStart(2, "0")}:${minutes}`;
+}
+
+function convertTo12Hour(time24h: string): { time: string; period: string } {
+  const [hours, minutes] = time24h.split(":");
+  let hour = parseInt(hours);
+  const period = hour >= 12 ? "PM" : "AM";
+
+  if (hour === 0) {
+    hour = 12;
+  } else if (hour > 12) {
+    hour -= 12;
+  }
+
+  return {
+    time: `${hour.toString().padStart(2, "0")}:${minutes}`,
+    period,
+  };
+}
+
 export default function OpeningHours({ initialHours }: OpeningHoursProps) {
   const [hours, setHours] = useState<OpeningHoursType>(initialHours);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (
+  const handleTimeChange = (
     day: keyof OpeningHoursType,
-    field: "open" | "close" | "closed",
-    value: string | boolean,
+    field: "open" | "close",
+    time12h: string,
+    period: string,
   ) => {
+    const time24h = convertTo24Hour(time12h, period);
     setHours((prev) => ({
       ...prev,
       [day]: {
         ...prev[day],
-        [field]: value,
+        [field]: time24h,
+      },
+    }));
+  };
+
+  const handlePeriodChange = (
+    day: keyof OpeningHoursType,
+    field: "open" | "close",
+    newPeriod: string,
+  ) => {
+    const currentTime24h = hours[day][field];
+    const { time } = convertTo12Hour(currentTime24h);
+    const newTime24h = convertTo24Hour(time, newPeriod);
+
+    setHours((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [field]: newTime24h,
+      },
+    }));
+  };
+
+  const handleClosedChange = (day: keyof OpeningHoursType, closed: boolean) => {
+    setHours((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        closed,
       },
     }));
   };
@@ -61,49 +132,109 @@ export default function OpeningHours({ initialHours }: OpeningHoursProps) {
         <CardTitle className="font-playfair">Opening Hours</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {days.map(({ key, label }) => (
-          <div
-            key={key}
-            className="grid grid-cols-1 sm:grid-cols-[120px_1fr_1fr_100px] gap-4 items-center pb-4 border-b last:border-0"
-          >
-            <div className="font-semibold">{label}</div>
+        {days.map(({ key, label }) => {
+          const openTime = convertTo12Hour(hours[key].open);
+          const closeTime = convertTo12Hour(hours[key].close);
 
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 w-12">Open:</label>
-              <Input
-                type="time"
-                value={hours[key].open}
-                onChange={(e) => handleChange(key, "open", e.target.value)}
-                disabled={hours[key].closed || isLoading}
-                className="flex-1"
-              />
+          return (
+            <div
+              key={key}
+              className="grid grid-cols-1 lg:grid-cols-[120px_1fr_1fr_100px] gap-4 items-start pb-4 border-b last:border-0"
+            >
+              <div className="font-semibold pt-2">{label}</div>
+
+              {/* Open Time */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600">Open</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="time"
+                    value={openTime.time}
+                    onChange={(e) =>
+                      handleTimeChange(
+                        key,
+                        "open",
+                        e.target.value,
+                        openTime.period,
+                      )
+                    }
+                    disabled={hours[key].closed || isLoading}
+                    className="flex-1"
+                  />
+                  <Select
+                    value={openTime.period}
+                    onValueChange={(value) =>
+                      handlePeriodChange(key, "open", value)
+                    }
+                    disabled={hours[key].closed || isLoading}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Close Time */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600">Close</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="time"
+                    value={closeTime.time}
+                    onChange={(e) =>
+                      handleTimeChange(
+                        key,
+                        "close",
+                        e.target.value,
+                        closeTime.period,
+                      )
+                    }
+                    disabled={hours[key].closed || isLoading}
+                    className="flex-1"
+                  />
+                  <Select
+                    value={closeTime.period}
+                    onValueChange={(value) =>
+                      handlePeriodChange(key, "close", value)
+                    }
+                    disabled={hours[key].closed || isLoading}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Closed Toggle */}
+              <div className="flex items-center gap-2 pt-8">
+                <Switch
+                  checked={hours[key].closed}
+                  onCheckedChange={(checked) =>
+                    handleClosedChange(key, checked)
+                  }
+                  disabled={isLoading}
+                />
+                <label className="text-sm text-gray-600">Closed</label>
+              </div>
             </div>
+          );
+        })}
 
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 w-12">Close:</label>
-              <Input
-                type="time"
-                value={hours[key].close}
-                onChange={(e) => handleChange(key, "close", e.target.value)}
-                disabled={hours[key].closed || isLoading}
-                className="flex-1"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Closed</label>
-              <Switch
-                checked={hours[key].closed}
-                onCheckedChange={(checked) =>
-                  handleChange(key, "closed", checked)
-                }
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-        ))}
-
-        <Button onClick={handleSave} disabled={isLoading} className="w-full sm:w-auto">
+        <Button
+          onClick={handleSave}
+          disabled={isLoading}
+          className="w-full sm:w-auto"
+        >
           {isLoading ? (
             <>
               <Loader2 className="size-4 animate-spin" />

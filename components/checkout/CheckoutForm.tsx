@@ -21,10 +21,11 @@ interface CheckoutFormProps {
     state: string;
     zipCode: string;
   } | null;
+  deliveryFee: number;
 }
 
 export default function CheckoutForm({
-  userEmail,
+  deliveryFee,
   defaultAddress,
 }: CheckoutFormProps) {
   const router = useRouter();
@@ -45,7 +46,6 @@ export default function CheckoutForm({
 
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const deliveryFee = 2.99;
   const tax = subtotal * 0.08; // 8% tax
   const total = subtotal + deliveryFee + tax;
 

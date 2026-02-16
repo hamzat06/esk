@@ -12,24 +12,40 @@ import {
   X,
   LogOut,
   FolderKanban,
+  Users,
+  BarChart3,
+  Shield,
+  PartyPopper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { supabase } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
+import { useUserProfile } from "@/hooks/useUser";
 
-const navigation = [
+const baseNavigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Categories", href: "/admin/categories", icon: FolderKanban },
   { name: "Products", href: "/admin/products", icon: Package },
   { name: "Orders", href: "/admin/orders", icon: ShoppingBag },
+  { name: "Catering", href: "/admin/catering", icon: PartyPopper },
+  { name: "Customers", href: "/admin/customers", icon: Users },
+  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
+
+const superAdminNav = {
+  name: "Admins",
+  href: "/admin/admins",
+  icon: Shield,
+  requiresPermission: "manage_admins",
+};
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { profile } = useUserProfile();
 
   const handleLogout = async () => {
     try {
@@ -42,6 +58,15 @@ export default function AdminSidebar() {
       toast.error("Failed to log out");
     }
   };
+
+  // Check if user is super admin (null or empty permissions array)
+  const isSuperAdmin =
+    !profile?.permissions || profile.permissions.length === 0;
+
+  // Build navigation based on permissions
+  const navigation = isSuperAdmin
+    ? [...baseNavigation.slice(0, 7), superAdminNav, baseNavigation[7]]
+    : baseNavigation;
 
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
@@ -78,11 +103,7 @@ export default function AdminSidebar() {
 
       {/* Footer */}
       <div className="p-4 border-t">
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleLogout}
-        >
+        <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="size-4" />
           Logout
         </Button>

@@ -41,17 +41,19 @@ const ContentTabs: React.FC<ContentTabsProps> = ({
         onValueChange={onValueChange}
         className={cn("w-full", className)}
       >
-        <TabsList className="h-10 sm:h-12 bg-transparent p-0 gap-x-5 mx-auto">
-          {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="text-sm sm:text-base font-medium text-muted-foreground data-[state=active]:font-semibold data-[state=active]:bg-[#A62828] bg-gray-200 data-[state=active]:text-white relative h-full rounded-full data-[state=active]:shadow-none px-8 sm:px-10"
-            >
-              {tab.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="h-10 sm:h-12 bg-transparent p-0 gap-x-3 sm:gap-x-5 inline-flex w-max sm:w-auto sm:mx-auto">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="text-sm sm:text-base font-medium text-muted-foreground data-[state=active]:font-semibold data-[state=active]:bg-[#A62828] bg-gray-200 data-[state=active]:text-white relative h-full rounded-full data-[state=active]:shadow-none px-6 sm:px-8 md:px-10 whitespace-nowrap shrink-0"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {tabs.map((tab) => (
           <TabsContent key={tab.value} value={tab.value} className="mt-6">
@@ -69,13 +71,19 @@ const ContentTabs: React.FC<ContentTabsProps> = ({
       onValueChange={onValueChange}
       className={cn("w-full", wrapperClassName)}
     >
-      <TabsList className="w-full">
-        {tabs.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        <TabsList className="inline-flex w-max">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="whitespace-nowrap px-4"
+            >
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
       {tabs.map((tab) => (
         <TabsContent
           key={tab.value}
