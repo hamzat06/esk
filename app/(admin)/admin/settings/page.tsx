@@ -145,6 +145,7 @@ export default async function SettingsPage() {
               deliveryFee: 2.99,
               minimumOrder: 10.0,
               description: "",
+              logo: "/assets/esk-logo.png",
             }
           }
           updateShopInfo={updateShopInfoAction}

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { sendOrderStatusEmail } from "@/lib/notifications/email";
 
 export type OrderStatus =
   | "pending"
@@ -44,89 +45,91 @@ export type Order = {
   stripeSessionId?: string | null;
 };
 
-/**
- * Fetch all orders for the current user
- */
-export async function fetchUserOrders(userId: string): Promise<Order[]> {
-  const { data, error } = await supabase
+export async function fetchOrders(status?: OrderStatus) {
+  let query = supabase
     .from("orders")
-    .select("*")
-    .eq("user_id", userId)
+    .select(
+      `
+      *,
+      profile:profiles(full_name, email, phone)
+    `,
+    )
     .order("created_at", { ascending: false });
+
+  if (status) {
+    query = query.eq("status", status);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return (data || []).map((order) => ({
-    id: order.id,
-    orderNumber: order.order_number,
-    userId: order.user_id,
-    items: order.items as OrderItem[],
-    subtotal: Number(order.subtotal),
-    deliveryFee: Number(order.delivery_fee),
-    tax: Number(order.tax),
-    total: Number(order.total),
-    deliveryAddress: order.delivery_address as Order["deliveryAddress"],
-    status: order.status as OrderStatus,
-    createdAt: order.created_at,
-    updatedAt: order.updated_at,
-    notes: order.notes,
-    paymentIntentId: order.payment_intent_id,
-    stripeSessionId: order.stripe_session_id,
-  }));
+  return data;
 }
 
-/**
- * Fetch a single order by ID
- */
-export async function fetchOrderById(orderId: string): Promise<Order | null> {
+export async function updateOrderStatus(id: string, status: OrderStatus) {
+  // First get the order with customer details
+  const { data: orderBefore, error: fetchError } = await supabase
+    .from("orders")
+    .select(
+      `
+      *,
+      profile:profiles(full_name, email, phone)
+    `,
+    )
+    .eq("id", id)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  // Update the order status
   const { data, error } = await supabase
     .from("orders")
-    .select("*")
-    .eq("id", orderId)
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
     .single();
 
   if (error) {
-    console.error("Error fetching order:", error);
-    return null;
+    throw new Error(error.message);
   }
 
-  if (!data) return null;
+  // Send status update email (don't await, run in background)
+  if (orderBefore?.profile) {
+    sendOrderStatusEmail(
+      id,
+      status,
+      orderBefore.profile.email,
+      orderBefore.profile.full_name,
+      orderBefore.order_number,
+    ).catch((error) => {
+      console.error("Failed to send status email:", error);
+      // Don't throw - we don't want email failure to break the status update
+    });
+  }
 
-  return {
-    id: data.id,
-    orderNumber: data.order_number,
-    userId: data.user_id,
-    items: data.items as OrderItem[],
-    subtotal: Number(data.subtotal),
-    deliveryFee: Number(data.delivery_fee),
-    tax: Number(data.tax),
-    total: Number(data.total),
-    deliveryAddress: data.delivery_address as Order["deliveryAddress"],
-    status: data.status as OrderStatus,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-    notes: data.notes,
-    paymentIntentId: data.payment_intent_id,
-    stripeSessionId: data.stripe_session_id,
-  };
+  return data;
 }
 
-/**
- * Reorder - creates a new cart with items from a previous order
- */
-export async function reorderItems(orderId: string): Promise<boolean> {
-  try {
-    const order = await fetchOrderById(orderId);
-    if (!order) return false;
+export async function fetchOrderById(id: string) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `
+      *,
+      profile:profiles(full_name, email, phone)
+    `,
+    )
+    .eq("id", id)
+    .single();
 
-    // This would integrate with your cart system
-    // For now, this is a placeholder that returns success
-    console.log("Reordering items:", order.items);
-    return true;
-  } catch (error) {
-    console.error("Error reordering:", error);
-    return false;
+  if (error) {
+    throw new Error(error.message);
   }
+
+  return data;
 }

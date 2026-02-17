@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CldUploadWidget } from "next-cloudinary";
 import { toast } from "react-hot-toast";
 import {
   Store,
@@ -14,7 +15,11 @@ import {
   Clock,
   DollarSign,
   Phone,
+  Globe,
+  ImagePlus,
+  X,
 } from "lucide-react";
+import Image from "next/image";
 
 export type ShopInfo = {
   name: string;
@@ -30,6 +35,7 @@ export type ShopInfo = {
   deliveryFee: number;
   minimumOrder: number;
   description?: string;
+  logo?: string; // Cloudinary URL
 };
 
 type ShopInfoManagerProps = {
@@ -54,6 +60,18 @@ export default function ShopInfoManager({
   const handleNumberChange = (name: keyof ShopInfo, value: string) => {
     const numValue = parseFloat(value) || 0;
     setShopInfo((prev) => ({ ...prev, [name]: numValue }));
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLogoUpload = (result: any) => {
+    const logoUrl = result.info.secure_url;
+    setShopInfo((prev) => ({ ...prev, logo: logoUrl }));
+    toast.success("Logo uploaded successfully!");
+  };
+
+  const handleRemoveLogo = () => {
+    setShopInfo((prev) => ({ ...prev, logo: undefined }));
+    toast.success("Logo removed");
   };
 
   const handleSave = async () => {
@@ -115,6 +133,100 @@ export default function ShopInfoManager({
             <Store className="size-4" />
             Basic Information
           </h3>
+
+          {/* Logo Upload */}
+          <div>
+            <Label>Shop Logo</Label>
+            <div className="mt-2">
+              {shopInfo.logo ? (
+                <div className="flex items-start gap-4">
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
+                    <Image
+                      src={shopInfo.logo}
+                      alt="Shop logo"
+                      fill
+                      className="object-contain bg-white p-2"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-2">Current logo</p>
+                    <div className="flex gap-2">
+                      <CldUploadWidget
+                        uploadPreset="esk_preset"
+                        onSuccess={handleLogoUpload}
+                        options={{
+                          maxFiles: 1,
+                          resourceType: "image",
+                          clientAllowedFormats: [
+                            "jpg",
+                            "jpeg",
+                            "png",
+                            "webp",
+                            "svg",
+                          ],
+                          maxFileSize: 2000000, // 2MB
+                        }}
+                      >
+                        {({ open }) => (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => open()}
+                          >
+                            <ImagePlus className="size-4 mr-2" />
+                            Change Logo
+                          </Button>
+                        )}
+                      </CldUploadWidget>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleRemoveLogo}
+                      >
+                        <X className="size-4 mr-2" />
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <CldUploadWidget
+                  uploadPreset="esk_preset"
+                  onSuccess={handleLogoUpload}
+                  options={{
+                    maxFiles: 1,
+                    resourceType: "image",
+                    clientAllowedFormats: ["jpg", "jpeg", "png", "webp", "svg"],
+                    maxFileSize: 2000000, // 2MB
+                  }}
+                >
+                  {({ open }) => (
+                    <button
+                      type="button"
+                      onClick={() => open()}
+                      className="w-full border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-primary hover:bg-primary/5 transition-colors"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                          <ImagePlus className="size-8 text-gray-400" />
+                        </div>
+                        <p className="font-semibold">Upload Shop Logo</p>
+                        <p className="text-sm text-gray-500">
+                          PNG, JPG, SVG up to 2MB
+                        </p>
+                      </div>
+                    </button>
+                  )}
+                </CldUploadWidget>
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Recommended: Square image (e.g., 512x512px) with transparent
+                background
+              </p>
+            </div>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -398,6 +510,19 @@ export default function ShopInfoManager({
             Preview - How customers will see it:
           </p>
           <div>
+            {/* Logo Preview */}
+            {shopInfo.logo && (
+              <div className="mb-4">
+                <div className="relative w-16 h-16 mx-auto sm:mx-0">
+                  <Image
+                    src={shopInfo.logo}
+                    alt="Logo preview"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              </div>
+            )}
             <h2 className="text-3xl font-bold font-playfair mb-2">
               {shopInfo.name || "Your Shop Name"}
             </h2>

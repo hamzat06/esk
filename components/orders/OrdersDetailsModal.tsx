@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -114,6 +113,7 @@ export default function OrderDetailsModal({
       setCopied(true);
       toast.success("Order number copied!");
       setTimeout(() => setCopied(false), 2000);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       toast.error("Failed to copy");
     }
@@ -281,7 +281,7 @@ export default function OrderDetailsModal({
                   Delivery Information
                 </h3>
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-4">
+              <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-4">
                 <div className="flex gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                     <MapPin className="size-5 text-primary" />
@@ -339,7 +339,7 @@ export default function OrderDetailsModal({
               <h3 className="text-lg font-bold mb-4 text-gray-900">
                 Payment Summary
               </h3>
-              <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-3">
+              <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Subtotal</span>
                   <span className="font-semibold text-gray-900">

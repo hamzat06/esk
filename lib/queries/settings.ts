@@ -43,6 +43,7 @@ export type ShopInfo = {
   deliveryFee: number;
   minimumOrder: number;
   description?: string;
+  logo?: string; // Cloudinary URL for logo
 };
 
 // ========== Opening Hours Functions ==========
@@ -185,8 +186,6 @@ export async function removeHoliday(date: string): Promise<void> {
   await updateHolidays(filtered);
 }
 
-
-
 // ========== Banner Functions ==========
 
 export async function getBanners(): Promise<BannerImage[]> {
@@ -262,8 +261,9 @@ export async function getShopInfo(): Promise<ShopInfo> {
         deliveryTimeMin: 30,
         deliveryTimeMax: 45,
         deliveryFee: 2.99,
-        minimumOrder: 10.0,
+        minimumOrder: 10.00,
         description: "",
+        logo: "/assets/esk-logo.png", // Default logo
       };
     }
     throw new Error(error.message);

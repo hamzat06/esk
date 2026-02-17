@@ -46,8 +46,7 @@ export async function POST(request: NextRequest) {
       (sum: number, item: { totalPrice: number }) => sum + item.totalPrice,
       0,
     );
-    // ❌ REMOVED: const deliveryFee = 2.99;
-    const tax = subtotal * 0.08; // 8% tax
+    const tax = subtotal * 0.08;
     const total = subtotal + deliveryFee + tax;
 
     // Generate order number
@@ -96,7 +95,7 @@ export async function POST(request: NextRequest) {
                 ]
               : [],
           },
-          unit_amount: Math.round((item.totalPrice / item.quantity) * 100), // Convert to cents
+          unit_amount: Math.round((item.totalPrice / item.quantity) * 100),
         },
         quantity: item.quantity,
       }),

@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/providers";
 import GlobalToaster from "@/components/GlobalToaster";
+import { UserProfileProvider } from "@/lib/UseProfileProvider";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -29,8 +30,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable} antialiased`}>
         <Providers>
-          {children}
-          <GlobalToaster />
+          <UserProfileProvider>
+            {children}
+            <GlobalToaster />
+          </UserProfileProvider>
         </Providers>
       </body>
     </html>

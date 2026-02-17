@@ -3,7 +3,7 @@
 import { ShoppingBasket, UserCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "./ui/sheet";
 import { Button } from "./ui/button";
 import { XIcon } from "lucide-react";
@@ -11,16 +11,39 @@ import useToggle from "@/hooks/useToggle";
 import Auth from "./auth/Auth";
 import Cart from "./cart/Cart";
 import { useCartStore } from "./cart/stores/cartStore";
+import { supabase } from "@/lib/supabase/client";
 
 type DialogType = "CART" | "AUTH";
 
 const Navbar = () => {
   const dialog = useToggle();
   const [dialogType, setDialogType] = useState<DialogType>("CART");
+  const [logo, setLogo] = useState<string>("/assets/esk-logo.png");
   const items = useCartStore((s) => s.items);
 
   const isAuth = dialogType === "AUTH";
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Fetch logo from database
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const { data } = await supabase
+          .from("shop_settings")
+          .select("value")
+          .eq("key", "shop_info")
+          .single();
+
+        if (data?.value?.logo) {
+          setLogo(data.value.logo);
+        }
+      } catch (error) {
+        console.error("Error fetching logo:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   function openDialog(val: DialogType) {
     setDialogType(val);
@@ -44,9 +67,9 @@ const Navbar = () => {
             <Image
               width={100}
               height={100}
-              alt="eddysylva logo"
-              src="/assets/esk-logo.png"
-              className="size-11 sm:size-16"
+              alt="shop logo"
+              src={logo}
+              className="size-11 sm:size-16 object-contain"
               priority
             />
           </Link>
@@ -90,9 +113,9 @@ const Navbar = () => {
                 <Image
                   width={50}
                   height={50}
-                  alt="eddysylva logo"
-                  src="/assets/esk-logo.png"
-                  className="size-12 sm:size-14"
+                  alt="shop logo"
+                  src={logo}
+                  className="size-12 sm:size-14 object-contain"
                 />
               ) : (
                 "My Cart"
