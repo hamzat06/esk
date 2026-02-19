@@ -1,7 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import ProductsManager from "@/components/admin/products/ProductsManager";
+import ProductsClient from "@/components/admin/products/ProductsClient";
+import { requirePermission } from "@/lib/auth/permissions";
+
+// Cache for faster navigation
+export const revalidate = 30;
 
 export default async function ProductsPage() {
+  // Require products permission
+  await requirePermission("products");
+
   const supabase = await createClient();
 
   // Fetch products with categories
@@ -26,9 +33,9 @@ export default async function ProductsPage() {
   }
 
   return (
-    <ProductsManager
+    <ProductsClient
       initialProducts={products || []}
-      categories={categories || []}
+      initialCategories={categories || []}
     />
   );
 }

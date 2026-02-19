@@ -1,5 +1,5 @@
 import BusinessHours from "@/components/BusinessHours";
-import ProductList from "@/components/products/ProductList";
+import ProductListClient from "@/components/products/ProductListClient";
 import ProductsGridSkeleton from "@/components/products/ProductsGridSkeleton";
 import SearchHeader from "@/components/products/SearchHeader";
 import ShopCarousel from "@/components/ShopCarousel";
@@ -121,7 +121,8 @@ export default async function Page() {
       </div>
 
       <Suspense fallback={<ProductsGridSkeleton />}>
-        <ProductList products={products} categories={categories} />
+        <ProductListClient initialProducts={products}
+          initialCategories={categories} />
       </Suspense>
     </main>
   );

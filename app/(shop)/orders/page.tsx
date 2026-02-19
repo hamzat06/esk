@@ -1,4 +1,4 @@
-import OrdersList from "@/components/orders/OrdersList";
+import OrdersListClient from "@/components/orders/OrdersListClient";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
@@ -77,7 +77,7 @@ export default async function OrdersPage() {
         </div>
 
         {/* Orders List */}
-        <OrdersList orders={transformedOrders} />
+        <OrdersListClient initialOrders={transformedOrders} />
       </div>
     </main>
   );

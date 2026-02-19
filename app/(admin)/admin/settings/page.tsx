@@ -4,10 +4,15 @@ import OpeningHours from "@/components/admin/settings/OpeningHours";
 import HolidayManager from "@/components/admin/settings/HolidayManager";
 import BannerManager from "@/components/admin/settings/BannerManager";
 import ShopInfoManager from "@/components/admin/settings/ShopInfoManager";
+import { requirePermission, validateApiPermission } from "@/lib/auth/permissions";
 
 // Server action to update banners
 async function updateBannersAction(banners: any) {
   "use server";
+
+  // Require settings permission
+  await validateApiPermission("settings");
+
   const supabase = await createClient();
 
   // Check if the setting exists
@@ -47,6 +52,10 @@ async function updateBannersAction(banners: any) {
 // Server action to update shop info
 async function updateShopInfoAction(shopInfo: any) {
   "use server";
+
+  // Require settings permission
+  await validateApiPermission("settings");
+
   const supabase = await createClient();
 
   // Check if the setting exists
@@ -83,7 +92,13 @@ async function updateShopInfoAction(shopInfo: any) {
   return { success: true };
 }
 
+// Cache for faster navigation
+export const revalidate = 30;
+
 export default async function SettingsPage() {
+  // Require settings permission
+  await requirePermission("settings");
+
   const supabase = await createClient();
 
   // Fetch opening hours

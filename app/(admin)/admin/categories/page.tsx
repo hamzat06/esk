@@ -1,7 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import CategoriesManager from "@/components/admin/categories/CategoriesManager";
+import CategoriesClient from "@/components/admin/categories/CategoriesClient";
+import { requirePermission } from "@/lib/auth/permissions";
+
+// Cache for faster navigation
+export const revalidate = 30;
 
 export default async function CategoriesPage() {
+  // Require categories permission
+  await requirePermission("categories");
+
   const supabase = await createClient();
 
   // Fetch categories
@@ -14,5 +21,5 @@ export default async function CategoriesPage() {
     console.error("Failed to fetch categories:", error);
   }
 
-  return <CategoriesManager initialCategories={categories || []} />;
+  return <CategoriesClient initialCategories={categories || []} />;
 }

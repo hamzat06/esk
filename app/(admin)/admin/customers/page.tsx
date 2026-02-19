@@ -1,9 +1,16 @@
-import CustomersManager from "@/components/admin/customers/CustomersManager";
+import CustomersClient from "@/components/admin/customers/CustomersClient";
 import { fetchCustomers } from "@/lib/queries/admin/customer";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { requirePermission, requireSuperAdmin } from "@/lib/auth/permissions";
+
+// Cache for faster navigation
+export const revalidate = 30;
 
 export default async function CustomersPage() {
+  // Require customers permission
+  await requirePermission("customers");
+
   const customers = await fetchCustomers();
 
   // Server Action - promotes customer to admin with selected permissions
@@ -14,27 +21,10 @@ export default async function CustomersPage() {
   ) {
     "use server";
 
+    // Only super admins can promote to admin or manage admin permissions
+    await requireSuperAdmin();
+
     const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      throw new Error("Forbidden - Admin access required");
-    }
 
     // Prepare update data
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,27 +69,10 @@ export default async function CustomersPage() {
   ) {
     "use server";
 
+    // Require customers permission
+    await requirePermission("customers");
+
     const supabase = await createClient();
-
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin") {
-      throw new Error("Forbidden - Admin access required");
-    }
 
     // Update profile details
     const { error: profileError } = await supabase
@@ -149,7 +122,7 @@ export default async function CustomersPage() {
   }
 
   return (
-    <CustomersManager
+    <CustomersClient
       initialCustomers={customers}
       promoteToAdmin={promoteToAdmin}
       updateCustomerDetails={updateCustomerDetails}

@@ -1,36 +1,15 @@
-import { redirect } from "next/navigation";
-import AdminsManager from "@/components/admin/admins/AdminsManager";
+import AdminsClient from "@/components/admin/admins/AdminsClient";
 import { fetchAdmins } from "@/lib/queries/admin/admins";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { requireSuperAdmin } from "@/lib/auth/permissions";
+
+// Cache for faster navigation
+export const revalidate = 30;
 
 export default async function AdminsPage() {
-  const supabase = await createClient();
-
-  // Get current user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/signin");
-  }
-
-  // Get user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  // Only super admins (null permissions) can access this page
-  if (
-    !profile ||
-    profile.role !== "admin" ||
-    (profile.permissions && profile.permissions.length > 0)
-  ) {
-    redirect("/admin");
-  }
+  // Require super admin access
+  const profile = await requireSuperAdmin();
 
   const admins = await fetchAdmins();
 
@@ -38,30 +17,12 @@ export default async function AdminsPage() {
   async function updatePermissions(adminId: string, permissions: string[] | null) {
     "use server";
 
+    // Require super admin
+    const currentProfile = await requireSuperAdmin();
     const supabase = await createClient();
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
-    // Check if current user is super admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("permissions, role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin" || profile.permissions !== null) {
-      throw new Error("Forbidden - Only super admins can manage permissions");
-    }
-
     // Don't allow editing own permissions
-    if (adminId === user.id) {
+    if (adminId === currentProfile.id) {
       throw new Error("You cannot edit your own permissions");
     }
 
@@ -89,30 +50,12 @@ export default async function AdminsPage() {
   async function demoteToCustomer(adminId: string) {
     "use server";
 
+    // Require super admin
+    const currentProfile = await requireSuperAdmin();
     const supabase = await createClient();
 
-    // Check authentication
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      throw new Error("Unauthorized");
-    }
-
-    // Check if current user is super admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("permissions, role")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile || profile.role !== "admin" || profile.permissions !== null) {
-      throw new Error("Forbidden - Only super admins can demote admins");
-    }
-
     // Don't allow demoting yourself
-    if (adminId === user.id) {
+    if (adminId === currentProfile.id) {
       throw new Error("You cannot demote yourself");
     }
 
@@ -139,9 +82,9 @@ export default async function AdminsPage() {
   }
 
   return (
-    <AdminsManager
+    <AdminsClient
       initialAdmins={admins}
-      currentUserId={user.id}
+      currentUserId={profile.id}
       updatePermissions={updatePermissions}
       demoteToCustomer={demoteToCustomer}
     />

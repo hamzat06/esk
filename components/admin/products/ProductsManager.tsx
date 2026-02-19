@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -50,6 +50,11 @@ export default function ProductsManager({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Sync with React Query data
+  useEffect(() => {
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
   // Calculate stats
   const totalProducts = products.length;

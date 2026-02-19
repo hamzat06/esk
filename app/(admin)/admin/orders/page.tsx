@@ -1,7 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
-import OrdersManager from "@/components/admin/orders/OrdersManager";
+import OrdersClient from "@/components/admin/orders/OrdersClient";
+import { requirePermission } from "@/lib/auth/permissions";
+
+// Cache for faster navigation
+export const revalidate = 30;
 
 export default async function OrdersPage() {
+  // Require orders permission
+  await requirePermission("orders");
+
   const supabase = await createClient();
 
   // Fetch all orders with customer profiles
@@ -19,5 +26,5 @@ export default async function OrdersPage() {
     console.error("Failed to fetch orders:", error);
   }
 
-  return <OrdersManager initialOrders={orders || []} />;
+  return <OrdersClient initialOrders={orders || []} />;
 }

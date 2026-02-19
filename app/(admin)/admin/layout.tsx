@@ -9,7 +9,9 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <AdminSidebar />
+      <Suspense fallback={<div />}>
+        <AdminSidebar />
+      </Suspense>
       <main className="flex-1 lg:ml-64 pt-14 sm:pt-0">
         <Suspense fallback={<AdminLoading />}>{children}</Suspense>
       </main>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import CateringBookingsManager from "@/components/admin/catering/CateringBookingsManager";
+import CateringClient from "@/components/admin/catering/CateringClient";
+import { requirePermission } from "@/lib/auth/permissions";
 
 async function fetchCateringBookings() {
   const supabase = await createClient();
@@ -17,8 +18,14 @@ async function fetchCateringBookings() {
   return data || [];
 }
 
+// Cache for faster navigation
+export const revalidate = 30;
+
 export default async function CateringBookingsPage() {
+  // Require catering permission
+  await requirePermission("catering");
+
   const bookings = await fetchCateringBookings();
 
-  return <CateringBookingsManager initialBookings={bookings} />;
+  return <CateringClient initialBookings={bookings} />;
 }
