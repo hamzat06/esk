@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         tax: tax,
         total: total,
         delivery_address: deliveryAddress,
-        status: "pending",
+        status: "pending_payment",
         notes: notes || null,
       })
       .select()

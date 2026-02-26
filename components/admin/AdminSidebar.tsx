@@ -90,7 +90,7 @@ export default function AdminSidebar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showPermissionError, setShowPermissionError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const { profile } = useUserProfile();
+  const { profile, loading } = useUserProfile();
 
   // Check for permission errors in URL
   useEffect(() => {
@@ -142,34 +142,12 @@ export default function AdminSidebar() {
   const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-6 border-b">
+      <div className="p-6 border-b bg-card">
         <Link href="/admin" className="block">
           <h1 className="text-2xl font-bold font-playfair text-primary">
             Admin Panel
           </h1>
         </Link>
-
-        {/* Show admin type badge */}
-        {profile && (
-          <div className="mt-2">
-            {isSuperAdmin ? (
-              <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                <Shield className="size-3" />
-                <span className="font-semibold">Super Admin</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1.5 text-xs text-blue-600">
-                <Shield className="size-3" />
-                <span className="font-semibold">
-                  Admin{" "}
-                  {profile.permissions && profile.permissions.length > 0
-                    ? `(${profile.permissions.length} permissions)`
-                    : "(No permissions)"}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* Permission Error Alert */}
@@ -184,39 +162,93 @@ export default function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {finalNavigation.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              onClick={() => mobile && setMobileMenuOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                isActive
-                  ? "bg-primary text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              <item.icon className="size-5" />
-              <span className="font-semibold">{item.name}</span>
-            </Link>
-          );
-        })}
+        {loading ? (
+          // Skeleton loader while loading
+          <>
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl animate-pulse"
+              >
+                <div className="size-5 bg-gray-200 rounded" />
+                <div className="h-4 bg-gray-200 rounded flex-1" />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            {finalNavigation.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => mobile && setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    isActive
+                      ? "bg-primary text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <item.icon className="size-5" />
+                  <span className="font-semibold">{item.name}</span>
+                </Link>
+              );
+            })}
 
-        {/* Show message if admin has no permissions */}
-        {!isSuperAdmin &&
-          (!profile?.permissions || profile.permissions.length === 0) && (
-            <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-800">
-                <AlertCircle className="size-3 inline mr-1" />
-                You have no permissions assigned yet. Contact a super admin.
-              </p>
-            </div>
-          )}
+            {/* Show message if admin has no permissions - ONLY after loading */}
+            {profile &&
+              profile.role === "admin" &&
+              !isSuperAdmin &&
+              (!profile.permissions || profile.permissions.length === 0) && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs text-amber-800">
+                    <AlertCircle className="size-3 inline mr-1" />
+                    You have no permissions assigned yet. Contact a super admin.
+                  </p>
+                </div>
+              )}
+          </>
+        )}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-3">
+        {/* Admin Profile Info */}
+        {profile && (
+          <div className="space-y-2">
+            {/* Admin Name & Email */}
+            <div>
+              <p className="font-semibold text-foreground truncate text-sm">
+                {profile.fullName}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {profile.email}
+              </p>
+            </div>
+
+            {/* Admin Type Badge */}
+            <div>
+              {isSuperAdmin ? (
+                <div className="flex items-center gap-1.5 text-xs text-amber-600">
+                  <Shield className="size-3" />
+                  <span className="font-semibold">Super Admin</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs text-blue-600">
+                  <Shield className="size-3" />
+                  <span className="font-semibold">
+                    Admin{" "}
+                    {profile.permissions && profile.permissions.length > 0
+                      ? `(${profile.permissions.length} permissions)`
+                      : "(No permissions)"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <Button variant="outline" className="w-full" onClick={handleLogout}>
           <LogOut className="size-4" />
           Logout
