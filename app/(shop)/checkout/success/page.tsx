@@ -2,7 +2,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 
 export default async function CheckoutSuccessPage({
@@ -16,10 +16,9 @@ export default async function CheckoutSuccessPage({
     redirect("/");
   }
 
-  const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
 
-  // Fetch order using stripe_session_id
-  const { data: order, error } = await supabase
+  const { data: order, error } = await supabaseAdmin
     .from("orders")
     .select("*")
     .eq("stripe_session_id", session_id)
@@ -29,11 +28,12 @@ export default async function CheckoutSuccessPage({
     redirect("/");
   }
 
+  const isGuestOrder = !order.user_id;
+
   return (
     <main className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4 sm:px-5">
         <div className="max-w-2xl mx-auto">
-          {/* Success Icon */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-4">
               <CheckCircle2 className="size-10 text-green-600" />
@@ -46,7 +46,6 @@ export default async function CheckoutSuccessPage({
             </p>
           </div>
 
-          {/* Order Details Card */}
           <Card>
             <CardHeader>
               <CardTitle className="text-xl font-bold font-playfair">
@@ -70,9 +69,7 @@ export default async function CheckoutSuccessPage({
 
               <div className="pb-3 border-b">
                 <p className="text-gray-600 mb-2">Delivery Address</p>
-                <p className="font-semibold">
-                  {order.delivery_address.street}
-                </p>
+                <p className="font-semibold">{order.delivery_address.street}</p>
                 <p className="text-gray-600">
                   {order.delivery_address.city}, {order.delivery_address.state}{" "}
                   {order.delivery_address.zipCode}
@@ -87,22 +84,23 @@ export default async function CheckoutSuccessPage({
                   <strong>What&apos;s next?</strong>
                 </p>
                 <p className="text-sm text-blue-700 mt-1">
-                  We&apos;re preparing your order. You&apos;ll receive updates
-                  on your order status. Estimated delivery time is 30-45
+                  We&apos;re preparing your order. You&apos;ll receive a
+                  confirmation email shortly. Estimated delivery time is 30–45
                   minutes.
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
-            <Link href="/orders" className="flex-1">
-              <Button variant="outline" size="lg" className="w-full">
-                View Order Status
-              </Button>
-            </Link>
-            <Link href="/" className="flex-1">
+            {!isGuestOrder && (
+              <Link href="/orders" className="flex-1">
+                <Button variant="outline" size="lg" className="w-full">
+                  View Order Status
+                </Button>
+              </Link>
+            )}
+            <Link href="/" className={isGuestOrder ? "w-full" : "flex-1"}>
               <Button size="lg" className="w-full">
                 Continue Shopping
               </Button>

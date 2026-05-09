@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOrderConfirmationEmail } from "@/lib/notifications/email";
 
 export async function POST(request: NextRequest) {
@@ -27,25 +27,21 @@ export async function POST(request: NextRequest) {
   } catch (err: unknown) {
     console.error("Webhook signature verification failed:", err);
     const errorMessage =
-      err instanceof Error
-        ? err.message
-        : "Webhook signature verification failed";
+      err instanceof Error ? err.message : "Webhook signature verification failed";
     return NextResponse.json(
       { error: `Webhook Error: ${errorMessage}` },
       { status: 400 },
     );
   }
 
-  // Handle the event
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object;
 
       try {
-        const supabase = await createClient();
+        const supabaseAdmin = createAdminClient();
 
-        // Update order with payment information
-        const { data: order, error } = await supabase
+        const { data: order, error } = await supabaseAdmin
           .from("orders")
           .update({
             payment_intent_id: session.payment_intent as string,
@@ -68,14 +64,19 @@ export async function POST(request: NextRequest) {
 
         console.log("Order updated successfully:", session.metadata?.orderId);
 
-        // Send order confirmation email
-        if (order && order.profiles) {
+        const customerName =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (order.profiles as any)?.full_name || order.guest_name || "Customer";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const customerEmail = (order.profiles as any)?.email || order.guest_email;
+
+        if (order && customerEmail) {
           try {
             await sendOrderConfirmationEmail({
               orderId: order.id,
               orderNumber: order.order_number,
-              customerName: order.profiles.full_name,
-              customerEmail: order.profiles.email,
+              customerName,
+              customerEmail,
               items: order.items,
               subtotal: order.subtotal,
               deliveryFee: order.delivery_fee,
@@ -88,7 +89,6 @@ export async function POST(request: NextRequest) {
             console.log("Order confirmation email sent:", order.order_number);
           } catch (emailError) {
             console.error("Failed to send confirmation email:", emailError);
-            // Don't fail the webhook if email fails
           }
         }
       } catch (error) {
@@ -102,14 +102,12 @@ export async function POST(request: NextRequest) {
     }
 
     case "checkout.session.expired": {
-      // Handle expired checkout sessions
       const session = event.data.object;
 
       try {
-        const supabase = await createClient();
+        const supabaseAdmin = createAdminClient();
 
-        // Optionally update order status to cancelled
-        await supabase
+        await supabaseAdmin
           .from("orders")
           .update({
             status: "cancelled",

@@ -326,7 +326,7 @@ export default function ProductDialog({
 
               <div className="grid grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel>Price (₦) *</FieldLabel>
+                  <FieldLabel>Price ($) *</FieldLabel>
                   <Input
                     type="number"
                     step="0.01"
@@ -535,7 +535,7 @@ export default function ProductDialog({
                           className="flex-1"
                         />
                         <div className="flex items-center gap-1">
-                          <span className="text-sm text-gray-600">₦</span>
+                          <span className="text-sm text-gray-600">$</span>
                           <Input
                             type="number"
                             step="0.01"

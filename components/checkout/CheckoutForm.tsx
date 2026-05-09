@@ -14,6 +14,7 @@ import Image from "next/image";
 import { toast } from "react-hot-toast";
 
 interface CheckoutFormProps {
+  userName: string;
   userEmail: string;
   defaultAddress?: {
     street: string;
@@ -27,15 +28,21 @@ interface CheckoutFormProps {
 export default function CheckoutForm({
   deliveryFee,
   defaultAddress,
+  userName,
+  userEmail,
 }: CheckoutFormProps) {
   const router = useRouter();
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
 
+  const isGuest = !userEmail;
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
+    name: userName || "",
+    email: userEmail || "",
     street: defaultAddress?.street || "",
     city: defaultAddress?.city || "",
     state: defaultAddress?.state || "",
@@ -44,9 +51,8 @@ export default function CheckoutForm({
     notes: "",
   });
 
-  // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const tax = subtotal * 0.08; // 8% tax
+  const tax = subtotal * 0.08;
   const total = subtotal + deliveryFee + tax;
 
   const handleChange = (
@@ -63,13 +69,18 @@ export default function CheckoutForm({
     e.preventDefault();
     setError(null);
 
-    // Validation
-    if (
-      !formData.street ||
-      !formData.city ||
-      !formData.state ||
-      !formData.zipCode
-    ) {
+    if (isGuest) {
+      if (!formData.name.trim()) {
+        setError("Please provide your full name");
+        return;
+      }
+      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        setError("Please provide a valid email address");
+        return;
+      }
+    }
+
+    if (!formData.street || !formData.city || !formData.state || !formData.zipCode) {
       setError("Please fill in all address fields");
       return;
     }
@@ -87,14 +98,11 @@ export default function CheckoutForm({
     setIsLoading(true);
 
     try {
-      // Create checkout session via API
       const response = await fetch("/api/checkout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: items,
+          items,
           deliveryAddress: {
             street: formData.street,
             city: formData.city,
@@ -103,6 +111,10 @@ export default function CheckoutForm({
             phone: formData.phone,
           },
           notes: formData.notes || null,
+          ...(isGuest && {
+            guestName: formData.name.trim(),
+            guestEmail: formData.email.trim(),
+          }),
         }),
       });
 
@@ -112,7 +124,6 @@ export default function CheckoutForm({
         throw new Error(data.error || "Failed to create checkout session");
       }
 
-      // Redirect to Stripe Checkout
       const { getStripe } = await import("@/lib/stripe/client");
       const stripe = await getStripe();
 
@@ -120,10 +131,8 @@ export default function CheckoutForm({
         throw new Error("Failed to load Stripe");
       }
 
-      // Clear cart before redirecting
       clearCart();
 
-      // Redirect to Stripe checkout
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (stripe as any).redirectToCheckout({
         sessionId: data.sessionId,
@@ -161,7 +170,6 @@ export default function CheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Error Message */}
       {error && (
         <div className="rounded-xl bg-red-50 border border-red-200 p-4 flex items-start gap-3">
           <AlertCircle className="size-5 text-red-600 shrink-0 mt-0.5" />
@@ -170,7 +178,7 @@ export default function CheckoutForm({
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Forms */}
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
           {/* Delivery Address */}
           <Card>
@@ -252,6 +260,42 @@ export default function CheckoutForm({
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {isGuest ? (
+                <>
+                  <Field>
+                    <FieldLabel htmlFor="name">Full Name</FieldLabel>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Jane Smith"
+                      value={formData.name}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="email">Email Address</FieldLabel>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="jane@example.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                  </Field>
+                </>
+              ) : (
+                <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
+                  Ordering as <span className="font-semibold text-gray-800">{formData.name}</span>{" "}
+                  &mdash; {formData.email}
+                </div>
+              )}
+
               <Field>
                 <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
                 <Input
@@ -287,7 +331,6 @@ export default function CheckoutForm({
         {/* Right Column - Order Summary */}
         <div className="lg:col-span-1">
           <div className="sticky top-6 space-y-6">
-            {/* Order Items */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl font-bold font-playfair">
@@ -304,10 +347,7 @@ export default function CheckoutForm({
                           src={item.image}
                           fill
                           className="object-cover"
-                          crop={{
-                            type: "auto",
-                            source: true,
-                          }}
+                          crop={{ type: "auto", source: true }}
                         />
                       ) : (
                         <Image
@@ -322,9 +362,7 @@ export default function CheckoutForm({
                       <h4 className="font-semibold text-sm line-clamp-1">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                       <p className="text-sm font-semibold font-playfair mt-1">
                         ${item.totalPrice.toFixed(2)}
                       </p>
@@ -334,7 +372,6 @@ export default function CheckoutForm({
               </CardContent>
             </Card>
 
-            {/* Price Breakdown */}
             <Card>
               <CardContent className="pt-6 space-y-3">
                 <div className="flex justify-between text-sm">
@@ -343,9 +380,7 @@ export default function CheckoutForm({
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Delivery Fee</span>
-                  <span className="font-semibold">
-                    ${deliveryFee.toFixed(2)}
-                  </span>
+                  <span className="font-semibold">${deliveryFee.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Tax (8%)</span>

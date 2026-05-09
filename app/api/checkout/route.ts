@@ -1,25 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
+    const supabaseAdmin = createAdminClient();
 
-    // Check authentication
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const userId = user.id;
-
-    // Get request body
     const body = await request.json();
-    const { items, deliveryAddress, notes } = body;
+    const { items, deliveryAddress, notes, guestName, guestEmail } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -32,8 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ✅ FETCH DELIVERY FEE FROM DATABASE
-    const { data: shopInfoData } = await supabase
+    if (!user) {
+      if (!guestName || !guestEmail) {
+        return NextResponse.json(
+          { error: "Name and email are required" },
+          { status: 400 },
+        );
+      }
+    }
+
+    const { data: shopInfoData } = await supabaseAdmin
       .from("shop_settings")
       .select("value")
       .eq("key", "shop_info")
@@ -41,7 +43,6 @@ export async function POST(request: NextRequest) {
 
     const deliveryFee = shopInfoData?.value?.deliveryFee || 2.99;
 
-    // Calculate totals
     const subtotal = items.reduce(
       (sum: number, item: { totalPrice: number }) => sum + item.totalPrice,
       0,
@@ -49,25 +50,25 @@ export async function POST(request: NextRequest) {
     const tax = subtotal * 0.08;
     const total = subtotal + deliveryFee + tax;
 
-    // Generate order number
     const { data: orderNumberData, error: orderNumberError } =
-      await supabase.rpc("generate_order_number");
+      await supabaseAdmin.rpc("generate_order_number");
 
     if (orderNumberError) throw orderNumberError;
 
     const orderNumber = orderNumberData as string;
 
-    // Create order in database with pending_payment status
-    const { data: order, error: orderError } = await supabase
+    const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         order_number: orderNumber,
-        user_id: userId,
-        items: items,
-        subtotal: subtotal,
+        user_id: user?.id || null,
+        guest_name: user ? null : guestName,
+        guest_email: user ? null : guestEmail,
+        items,
+        subtotal,
         delivery_fee: deliveryFee,
-        tax: tax,
-        total: total,
+        tax,
+        total,
         delivery_address: deliveryAddress,
         status: "pending_payment",
         notes: notes || null,
@@ -77,7 +78,6 @@ export async function POST(request: NextRequest) {
 
     if (orderError) throw orderError;
 
-    // Create Stripe checkout session
     const lineItems = items.map(
       (item: {
         title: string;
@@ -101,25 +101,19 @@ export async function POST(request: NextRequest) {
       }),
     );
 
-    // Add delivery fee as a line item
     lineItems.push({
       price_data: {
         currency: "usd",
-        product_data: {
-          name: "Delivery Fee",
-        },
+        product_data: { name: "Delivery Fee" },
         unit_amount: Math.round(deliveryFee * 100),
       },
       quantity: 1,
     });
 
-    // Add tax as a line item
     lineItems.push({
       price_data: {
         currency: "usd",
-        product_data: {
-          name: "Tax (8%)",
-        },
+        product_data: { name: "Tax (8%)" },
         unit_amount: Math.round(tax * 100),
       },
       quantity: 1,
@@ -133,13 +127,12 @@ export async function POST(request: NextRequest) {
       cancel_url: `${process.env.NEXT_PUBLIC_URL}/checkout/cancel`,
       metadata: {
         orderId: order.id,
-        userId: userId,
+        userId: user?.id || "",
       },
-      customer_email: user.email,
+      customer_email: user?.email || guestEmail,
     });
 
-    // Update order with stripe_session_id
-    await supabase
+    await supabaseAdmin
       .from("orders")
       .update({ stripe_session_id: stripeSession.id })
       .eq("id", order.id);
@@ -151,9 +144,7 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error("Checkout error:", error);
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to create checkout session";
+      error instanceof Error ? error.message : "Failed to create checkout session";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

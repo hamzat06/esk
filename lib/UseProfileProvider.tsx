@@ -1,9 +1,11 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
 import { UserProfile, UserRole } from "@/components/auth/types/auth";
+import { useCartStore } from "@/components/cart/stores/cartStore";
+import { syncCartToServer } from "@/lib/syncCart";
 
 interface UserProfileContextType {
   user: User | null;
@@ -21,9 +23,11 @@ export function UserProfileProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const clearCart = useCartStore((s) => s.clearCart);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const syncedUserIdRef = useRef<string | null>(null);
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -61,13 +65,32 @@ export function UserProfileProvider({
     }
   };
 
+  const syncGuestCartIfNeeded = async (userId: string) => {
+    const guestItems = useCartStore.getState().items;
+
+    if (guestItems.length === 0 || syncedUserIdRef.current === userId) {
+      return;
+    }
+
+    try {
+      await syncCartToServer(guestItems, userId);
+      clearCart();
+      syncedUserIdRef.current = userId;
+    } catch (error) {
+      console.error("Error syncing guest cart:", error);
+    }
+  };
+
   useEffect(() => {
     // Get initial user
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user ?? null);
       if (user) {
-        fetchProfile(user.id).then(() => setLoading(false));
+        Promise.all([fetchProfile(user.id), syncGuestCartIfNeeded(user.id)]).then(
+          () => setLoading(false),
+        );
       } else {
+        syncedUserIdRef.current = null;
         setLoading(false);
       }
     });
@@ -78,9 +101,11 @@ export function UserProfileProvider({
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        void fetchProfile(session.user.id);
+        void syncGuestCartIfNeeded(session.user.id);
       } else {
         setProfile(null);
+        syncedUserIdRef.current = null;
       }
       setLoading(false);
     });
