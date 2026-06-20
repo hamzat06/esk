@@ -16,6 +16,7 @@ import { CartItem } from "../cart/types/cart";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-hot-toast";
 import { CldImage } from "next-cloudinary";
+import { isVideoAsset, getPublicId, getVideoUrl } from "@/lib/cloudinary";
 
 interface ProductDetailsModalProps {
   product?: Product;
@@ -100,16 +101,24 @@ const ProductDetailsModal = ({
         {/* Product Image */}
         <div className="relative w-full h-72 sm:h-80">
           {product.image ? (
-            <CldImage
-              alt={product.title}
-              src={product.image}
-              className={`object-cover ${!product.in_stock && "grayscale"}`}
-              fill
-              crop={{
-                type: "auto",
-                source: true,
-              }}
-            />
+            isVideoAsset(product.image) ? (
+              <video
+                src={getVideoUrl(getPublicId(product.image))}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className={`w-full h-full object-cover ${!product.in_stock && "grayscale"}`}
+              />
+            ) : (
+              <CldImage
+                alt={product.title}
+                src={product.image}
+                className={`object-cover ${!product.in_stock && "grayscale"}`}
+                fill
+                crop={{ type: "auto", source: true }}
+              />
+            )
           ) : (
             <Image
               src="/assets/mustard-back.jpg"

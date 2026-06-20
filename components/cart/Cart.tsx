@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "./stores/cartStore";
 import { toast } from "react-hot-toast";
 import { CldImage } from "next-cloudinary";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 
 const Cart = ({ onClose }: { onClose: PureFunc }) => {
   const items = useCartStore((s) => s.items);
@@ -74,16 +75,22 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
               {/* Image */}
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-xl overflow-hidden bg-gray-100">
                 {item.image ? (
-                  <CldImage
-                    alt={item.title}
-                    src={item.image}
-                    className="object-cover"
-                    fill
-                    crop={{
-                      type: "auto",
-                      source: true,
-                    }}
-                  />
+                  isVideoAsset(item.image) ? (
+                    <Image
+                      src={getVideoThumbnailUrl(getPublicId(item.image))}
+                      alt={item.title}
+                      className="object-cover"
+                      fill
+                    />
+                  ) : (
+                    <CldImage
+                      alt={item.title}
+                      src={item.image}
+                      className="object-cover"
+                      fill
+                      crop={{ type: "auto", source: true }}
+                    />
+                  )
                 ) : (
                   <Image
                     src="/assets/mustard-back.jpg"

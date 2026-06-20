@@ -10,6 +10,7 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { useCartStore } from "@/components/cart/stores/cartStore";
 import { MapPin, Phone, CreditCard, Loader2, AlertCircle } from "lucide-react";
 import { CldImage } from "next-cloudinary";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 
@@ -342,13 +343,22 @@ export default function CheckoutForm({
                   <div key={item.id} className="flex gap-3">
                     <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-gray-100">
                       {item.image ? (
-                        <CldImage
-                          alt={item.title}
-                          src={item.image}
-                          fill
-                          className="object-cover"
-                          crop={{ type: "auto", source: true }}
-                        />
+                        isVideoAsset(item.image) ? (
+                          <Image
+                            src={getVideoThumbnailUrl(getPublicId(item.image))}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <CldImage
+                            alt={item.title}
+                            src={item.image}
+                            fill
+                            className="object-cover"
+                            crop={{ type: "auto", source: true }}
+                          />
+                        )
                       ) : (
                         <Image
                           src="/assets/mustard-back.jpg"

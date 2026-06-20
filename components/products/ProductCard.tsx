@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { highlightText } from "@/lib/highlightText";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
+import { isVideoAsset, getPublicId, getVideoUrl } from "@/lib/cloudinary";
 
 interface ProductCardProps {
   product: Product;
@@ -19,22 +20,35 @@ const ProductCard = ({
   onClick,
   searchQuery = "",
 }: ProductCardProps) => {
+  const isVideo = isVideoAsset(product.image);
+  const publicId = product.image ? getPublicId(product.image) : null;
+
   return (
     <div className="group sm:hover:cursor-pointer" onClick={onClick}>
       <div className="relative w-full aspect-square rounded-xl overflow-hidden">
-        {product.image ? (
-          <CldImage
-            alt={product.title}
-            src={product.image}
-            className={`object-cover transition-transform duration-300 group-hover:scale-110 ${
-              !product.in_stock && "grayscale"
-            }`}
-            fill
-            crop={{
-              type: "auto",
-              source: true,
-            }}
-          />
+        {product.image && publicId ? (
+          isVideo ? (
+            <video
+              src={getVideoUrl(publicId)}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
+                !product.in_stock && "grayscale"
+              }`}
+            />
+          ) : (
+            <CldImage
+              alt={product.title}
+              src={publicId}
+              className={`object-cover transition-transform duration-300 group-hover:scale-110 ${
+                !product.in_stock && "grayscale"
+              }`}
+              fill
+              crop={{ type: "auto", source: true }}
+            />
+          )
         ) : (
           <Image
             src="/assets/mustard-back.jpg"

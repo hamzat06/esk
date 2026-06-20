@@ -23,6 +23,7 @@ import { Product } from "@/components/products/types/product";
 import { Category } from "@/lib/queries/categories";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -230,16 +231,22 @@ export default function ProductsManager({
               <Card key={product.id} className="overflow-hidden">
                 <div className="relative aspect-video w-full bg-gray-100">
                   {product.image ? (
-                    <CldImage
-                      src={product.image}
-                      alt={product.title}
-                      fill
-                      className="object-cover"
-                      crop={{
-                        type: "auto",
-                        source: true,
-                      }}
-                    />
+                    isVideoAsset(product.image) ? (
+                      <Image
+                        src={getVideoThumbnailUrl(getPublicId(product.image))}
+                        alt={product.title}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <CldImage
+                        src={product.image}
+                        alt={product.title}
+                        fill
+                        className="object-cover"
+                        crop={{ type: "auto", source: true }}
+                      />
+                    )
                   ) : (
                     <Image
                       src="/assets/mustard-back.jpg"
