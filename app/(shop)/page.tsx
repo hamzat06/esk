@@ -31,7 +31,10 @@ export default async function Page() {
     deliveryTimeMin: 30,
     deliveryTimeMax: 45,
     deliveryFee: 2.99,
+    deliveryEnabled: true,
   };
+
+  const deliveryEnabled = shopInfo.deliveryEnabled !== false;
 
   const [products, categories] = await Promise.all([
     fetchProducts(),
@@ -79,18 +82,41 @@ export default async function Page() {
               >
                 {shopInfo.cuisine}
               </Badge>
-              <Badge
-                variant="outline"
-                className="px-3 py-1 text-sm border-gray-300 bg-white"
-              >
-                {shopInfo.deliveryTimeMin}-{shopInfo.deliveryTimeMax} min
-              </Badge>
-              <Badge
-                variant="outline"
-                className="px-3 py-1 text-sm border-gray-300 bg-white"
-              >
-                ${shopInfo.deliveryFee.toFixed(2)} delivery
-              </Badge>
+
+              {deliveryEnabled ? (
+                <>
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-sm border-gray-300 bg-white"
+                  >
+                    {shopInfo.deliveryTimeMin}-{shopInfo.deliveryTimeMax} min
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-sm border-gray-300 bg-white"
+                  >
+                    ${shopInfo.deliveryFee.toFixed(2)} delivery
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-sm border-gray-300 bg-white"
+                  >
+                    Pickup available
+                  </Badge>
+                </>
+              ) : (
+                <>
+                  <Badge className="px-3 py-1 text-sm bg-amber-100 text-amber-800 border border-amber-300">
+                    Delivery unavailable
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="px-3 py-1 text-sm border-gray-300 bg-white"
+                  >
+                    Pickup only
+                  </Badge>
+                </>
+              )}
             </div>
           </div>
 
