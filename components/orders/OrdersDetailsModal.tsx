@@ -10,6 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { CldImage } from "next-cloudinary";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import {
   Clock,
   CheckCircle2,
@@ -228,12 +230,31 @@ export default function OrderDetailsModal({
                     className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 transition-colors"
                   >
                     <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-white border-2 border-gray-200">
-                      <Image
-                        src={item.image || "/assets/jollof-rice-chicken.jpg"}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                      />
+                      {item.image ? (
+                        isVideoAsset(item.image) ? (
+                          <Image
+                            src={getVideoThumbnailUrl(getPublicId(item.image))}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <CldImage
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            className="object-cover"
+                            crop={{ type: "auto", source: true }}
+                          />
+                        )
+                      ) : (
+                        <Image
+                          src="/assets/jollof-rice-chicken.jpg"
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-base line-clamp-1 mb-2 text-gray-900">

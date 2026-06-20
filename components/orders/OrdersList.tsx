@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
+import { CldImage } from "next-cloudinary";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -286,14 +288,31 @@ export default function OrdersList({ orders }: OrdersListProps) {
                       {order.items.slice(0, 4).map((item) => (
                         <div key={item.id} className="shrink-0 group/item">
                           <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-gray-200 group-hover/item:border-primary transition-colors">
-                            <Image
-                              src={
-                                item.image || "/assets/jollof-rice-chicken.jpg"
-                              }
-                              alt={item.title}
-                              fill
-                              className="object-cover"
-                            />
+                            {item.image ? (
+                              isVideoAsset(item.image) ? (
+                                <Image
+                                  src={getVideoThumbnailUrl(getPublicId(item.image))}
+                                  alt={item.title}
+                                  fill
+                                  className="object-cover"
+                                />
+                              ) : (
+                                <CldImage
+                                  src={item.image}
+                                  alt={item.title}
+                                  fill
+                                  className="object-cover"
+                                  crop={{ type: "auto", source: true }}
+                                />
+                              )
+                            ) : (
+                              <Image
+                                src="/assets/jollof-rice-chicken.jpg"
+                                alt={item.title}
+                                fill
+                                className="object-cover"
+                              />
+                            )}
                             {item.quantity > 1 && (
                               <div className="absolute top-1 right-1 bg-black/75 text-white text-xs font-bold px-1.5 py-0.5 rounded-md">
                                 ×{item.quantity}
