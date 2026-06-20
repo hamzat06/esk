@@ -23,6 +23,7 @@ import {
   Receipt,
   ChefHat,
   Truck,
+  ShoppingBag,
   AlertCircle,
   Copy,
   CheckCheck,
@@ -294,12 +295,18 @@ export default function OrderDetailsModal({
 
             <Separator />
 
-            {/* Delivery Information */}
+            {/* Delivery / Pickup Information */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Truck className="size-5 text-gray-700" />
+                {order.deliveryAddress.type === "pickup" ? (
+                  <ShoppingBag className="size-5 text-gray-700" />
+                ) : (
+                  <Truck className="size-5 text-gray-700" />
+                )}
                 <h3 className="text-lg font-bold text-gray-900">
-                  Delivery Information
+                  {order.deliveryAddress.type === "pickup"
+                    ? "Pickup Information"
+                    : "Delivery Information"}
                 </h3>
               </div>
               <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-4">
@@ -308,16 +315,26 @@ export default function OrderDetailsModal({
                     <MapPin className="size-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-sm text-gray-900 mb-1.5">
-                      Delivery Address
-                    </p>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {order.deliveryAddress.street}
-                      <br />
-                      {order.deliveryAddress.city},{" "}
-                      {order.deliveryAddress.state}{" "}
-                      {order.deliveryAddress.zipCode}
-                    </p>
+                    {order.deliveryAddress.type === "pickup" ? (
+                      <>
+                        <p className="font-semibold text-sm text-gray-900 mb-1.5">
+                          Pickup — Customer will collect in store
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-sm text-gray-900 mb-1.5">
+                          Delivery Address
+                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {order.deliveryAddress.street}
+                          <br />
+                          {order.deliveryAddress.city},{" "}
+                          {order.deliveryAddress.state}{" "}
+                          {order.deliveryAddress.zipCode}
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 <Separator className="bg-gray-200" />

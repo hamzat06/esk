@@ -8,11 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { useCartStore } from "@/components/cart/stores/cartStore";
-import { MapPin, Phone, CreditCard, Loader2, AlertCircle } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  CreditCard,
+  Loader2,
+  AlertCircle,
+  Truck,
+  ShoppingBag,
+} from "lucide-react";
 import { CldImage } from "next-cloudinary";
-import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
+import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 
 interface CheckoutFormProps {
   userName: string;
@@ -24,6 +32,13 @@ interface CheckoutFormProps {
     zipCode: string;
   } | null;
   deliveryFee: number;
+  deliveryEnabled: boolean;
+  shopAddress: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
 }
 
 export default function CheckoutForm({
@@ -31,12 +46,19 @@ export default function CheckoutForm({
   defaultAddress,
   userName,
   userEmail,
+  deliveryEnabled,
+  shopAddress,
 }: CheckoutFormProps) {
   const router = useRouter();
   const items = useCartStore((s) => s.items);
   const clearCart = useCartStore((s) => s.clearCart);
 
   const isGuest = !userEmail;
+
+  // If delivery is disabled, force pickup
+  const [orderType, setOrderType] = useState<"delivery" | "pickup">(
+    deliveryEnabled ? "delivery" : "pickup",
+  );
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,17 +74,16 @@ export default function CheckoutForm({
     notes: "",
   });
 
+  const isPickup = orderType === "pickup";
+  const appliedDeliveryFee = isPickup ? 0 : deliveryFee;
   const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
   const tax = subtotal * 0.08;
-  const total = subtotal + deliveryFee + tax;
+  const total = subtotal + appliedDeliveryFee + tax;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (error) setError(null);
   };
 
@@ -75,15 +96,25 @@ export default function CheckoutForm({
         setError("Please provide your full name");
         return;
       }
-      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      if (
+        !formData.email.trim() ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+      ) {
         setError("Please provide a valid email address");
         return;
       }
     }
 
-    if (!formData.street || !formData.city || !formData.state || !formData.zipCode) {
-      setError("Please fill in all address fields");
-      return;
+    if (!isPickup) {
+      if (
+        !formData.street ||
+        !formData.city ||
+        !formData.state ||
+        !formData.zipCode
+      ) {
+        setError("Please fill in all address fields");
+        return;
+      }
     }
 
     if (!formData.phone) {
@@ -99,18 +130,24 @@ export default function CheckoutForm({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items,
-          deliveryAddress: {
+      const deliveryAddress = isPickup
+        ? { type: "pickup", phone: formData.phone }
+        : {
+            type: "delivery",
             street: formData.street,
             city: formData.city,
             state: formData.state,
             zipCode: formData.zipCode,
             phone: formData.phone,
-          },
+          };
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          orderType,
+          deliveryAddress,
           notes: formData.notes || null,
           ...(isGuest && {
             guestName: formData.name.trim(),
@@ -128,9 +165,7 @@ export default function CheckoutForm({
       const { getStripe } = await import("@/lib/stripe/client");
       const stripe = await getStripe();
 
-      if (!stripe) {
-        throw new Error("Failed to load Stripe");
-      }
+      if (!stripe) throw new Error("Failed to load Stripe");
 
       clearCart();
 
@@ -139,13 +174,13 @@ export default function CheckoutForm({
         sessionId: data.sessionId,
       });
 
-      if (result?.error) {
-        throw new Error(result.error.message);
-      }
+      if (result?.error) throw new Error(result.error.message);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Checkout error:", err);
-      setError(err.message || "Failed to proceed to payment. Please try again.");
+      setError(
+        err.message || "Failed to proceed to payment. Please try again.",
+      );
       toast.error("Failed to proceed to payment");
     } finally {
       setIsLoading(false);
@@ -181,74 +216,142 @@ export default function CheckoutForm({
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Delivery Address */}
+
+          {/* Delivery / Pickup selector */}
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <MapPin className="size-5 text-primary" />
-                <CardTitle className="text-xl font-bold font-playfair">
-                  Delivery Address
-                </CardTitle>
-              </div>
+              <CardTitle className="text-xl font-bold font-playfair">
+                How would you like to receive your order?
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Field>
-                <FieldLabel htmlFor="street">Street Address</FieldLabel>
-                <Input
-                  id="street"
-                  name="street"
-                  placeholder="123 Main Street"
-                  value={formData.street}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-              </Field>
+            <CardContent className="space-y-3">
+              {!deliveryEnabled && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2">
+                  <AlertCircle className="size-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-amber-800">
+                    Delivery is currently unavailable. Please select pickup.
+                  </p>
+                </div>
+              )}
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="city">City</FieldLabel>
-                  <Input
-                    id="city"
-                    name="city"
-                    placeholder="Philadelphia"
-                    value={formData.city}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => deliveryEnabled && setOrderType("delivery")}
+                  disabled={!deliveryEnabled}
+                  className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                    orderType === "delivery"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                >
+                  <Truck className="size-6" />
+                  <span className="font-semibold text-sm">Delivery</span>
+                  <span className="text-xs">
+                    ${deliveryFee.toFixed(2)} fee
+                  </span>
+                </button>
 
-                <Field>
-                  <FieldLabel htmlFor="state">State</FieldLabel>
-                  <Input
-                    id="state"
-                    name="state"
-                    placeholder="PA"
-                    maxLength={2}
-                    value={formData.state}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </Field>
+                <button
+                  type="button"
+                  onClick={() => setOrderType("pickup")}
+                  className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+                    orderType === "pickup"
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-gray-200 text-gray-500 hover:border-gray-300"
+                  }`}
+                >
+                  <ShoppingBag className="size-6" />
+                  <span className="font-semibold text-sm">Pickup</span>
+                  <span className="text-xs">Free</span>
+                </button>
               </div>
 
-              <Field>
-                <FieldLabel htmlFor="zipCode">ZIP Code</FieldLabel>
-                <Input
-                  id="zipCode"
-                  name="zipCode"
-                  placeholder="19139"
-                  maxLength={5}
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-              </Field>
+              {isPickup && (
+                <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 flex items-start gap-3">
+                  <MapPin className="size-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-0.5">Pickup location</p>
+                    <p>
+                      {shopAddress.address}, {shopAddress.city},{" "}
+                      {shopAddress.state} {shopAddress.zipCode}
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Delivery Address — only for delivery */}
+          {!isPickup && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <MapPin className="size-5 text-primary" />
+                  <CardTitle className="text-xl font-bold font-playfair">
+                    Delivery Address
+                  </CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Field>
+                  <FieldLabel htmlFor="street">Street Address</FieldLabel>
+                  <Input
+                    id="street"
+                    name="street"
+                    placeholder="123 Main Street"
+                    value={formData.street}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                </Field>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="city">City</FieldLabel>
+                    <Input
+                      id="city"
+                      name="city"
+                      placeholder="Philadelphia"
+                      value={formData.city}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="state">State</FieldLabel>
+                    <Input
+                      id="state"
+                      name="state"
+                      placeholder="PA"
+                      maxLength={2}
+                      value={formData.state}
+                      onChange={handleChange}
+                      disabled={isLoading}
+                      required
+                    />
+                  </Field>
+                </div>
+
+                <Field>
+                  <FieldLabel htmlFor="zipCode">ZIP Code</FieldLabel>
+                  <Input
+                    id="zipCode"
+                    name="zipCode"
+                    placeholder="19139"
+                    maxLength={5}
+                    value={formData.zipCode}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                </Field>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Contact Information */}
           <Card>
@@ -292,7 +395,10 @@ export default function CheckoutForm({
                 </>
               ) : (
                 <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
-                  Ordering as <span className="font-semibold text-gray-800">{formData.name}</span>{" "}
+                  Ordering as{" "}
+                  <span className="font-semibold text-gray-800">
+                    {formData.name}
+                  </span>{" "}
                   &mdash; {formData.email}
                 </div>
               )}
@@ -372,7 +478,9 @@ export default function CheckoutForm({
                       <h4 className="font-semibold text-sm line-clamp-1">
                         {item.title}
                       </h4>
-                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                      <p className="text-xs text-gray-500">
+                        Qty: {item.quantity}
+                      </p>
                       <p className="text-sm font-semibold font-playfair mt-1">
                         ${item.totalPrice.toFixed(2)}
                       </p>
@@ -388,10 +496,14 @@ export default function CheckoutForm({
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-semibold">${subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Delivery Fee</span>
-                  <span className="font-semibold">${deliveryFee.toFixed(2)}</span>
-                </div>
+                {!isPickup && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Delivery Fee</span>
+                    <span className="font-semibold">
+                      ${appliedDeliveryFee.toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Tax (8%)</span>
                   <span className="font-semibold">${tax.toFixed(2)}</span>

@@ -269,16 +269,22 @@ export default function OrdersList({ orders }: OrdersListProps) {
                     </div>
                   </div>
 
-                  {/* Delivery Address */}
+                  {/* Delivery / Pickup */}
                   <div className="flex items-start gap-2.5 mb-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
                     <MapPin className="size-4 text-gray-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {order.deliveryAddress.street},{" "}
-                        {order.deliveryAddress.city},{" "}
-                        {order.deliveryAddress.state}{" "}
-                        {order.deliveryAddress.zipCode}
-                      </p>
+                      {order.deliveryAddress.type === "pickup" ? (
+                        <p className="text-sm font-semibold text-gray-700">
+                          Pickup — collect in store
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {order.deliveryAddress.street},{" "}
+                          {order.deliveryAddress.city},{" "}
+                          {order.deliveryAddress.state}{" "}
+                          {order.deliveryAddress.zipCode}
+                        </p>
+                      )}
                     </div>
                   </div>
 

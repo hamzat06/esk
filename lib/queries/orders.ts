@@ -31,10 +31,11 @@ export type Order = {
   tax: number;
   total: number;
   deliveryAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
+    type?: "delivery" | "pickup";
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
     phone: string;
   };
   status: OrderStatus;

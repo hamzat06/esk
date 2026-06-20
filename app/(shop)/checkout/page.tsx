@@ -24,7 +24,9 @@ export default async function CheckoutPage() {
     .eq("key", "shop_info")
     .single();
 
-  const deliveryFee = shopInfoData?.value?.deliveryFee || 2.99;
+  const shopInfo = shopInfoData?.value || {};
+  const deliveryFee = shopInfo.deliveryFee || 2.99;
+  const deliveryEnabled = shopInfo.deliveryEnabled !== false; // default true
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -43,6 +45,13 @@ export default async function CheckoutPage() {
           userEmail={user?.email || ""}
           defaultAddress={profile?.default_address}
           deliveryFee={deliveryFee}
+          deliveryEnabled={deliveryEnabled}
+          shopAddress={{
+            address: shopInfo.address || "255 South 60th Street",
+            city: shopInfo.city || "Philadelphia",
+            state: shopInfo.state || "PA",
+            zipCode: shopInfo.zipCode || "19139",
+          }}
         />
       </div>
     </main>

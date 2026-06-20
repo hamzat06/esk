@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CldUploadWidget } from "next-cloudinary";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "react-hot-toast";
 import {
   Store,
@@ -15,7 +16,6 @@ import {
   Clock,
   DollarSign,
   Phone,
-  Globe,
   ImagePlus,
   X,
 } from "lucide-react";
@@ -34,8 +34,9 @@ export type ShopInfo = {
   deliveryTimeMax: number;
   deliveryFee: number;
   minimumOrder: number;
+  deliveryEnabled: boolean;
   description?: string;
-  logo?: string; // Cloudinary URL
+  logo?: string;
 };
 
 type ShopInfoManagerProps = {
@@ -369,6 +370,22 @@ export default function ShopInfoManager({
             <Clock className="size-4" />
             Delivery Settings
           </h3>
+
+          {/* Delivery toggle */}
+          <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+            <div>
+              <p className="font-medium text-sm">Delivery Available</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Turn off when no rider is available — customers will only see pickup
+              </p>
+            </div>
+            <Switch
+              checked={shopInfo.deliveryEnabled ?? true}
+              onCheckedChange={(checked) =>
+                setShopInfo((prev) => ({ ...prev, deliveryEnabled: checked }))
+              }
+            />
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

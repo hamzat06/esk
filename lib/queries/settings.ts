@@ -42,8 +42,9 @@ export type ShopInfo = {
   deliveryTimeMax: number;
   deliveryFee: number;
   minimumOrder: number;
+  deliveryEnabled: boolean;
   description?: string;
-  logo?: string; // Cloudinary URL for logo
+  logo?: string;
 };
 
 // ========== Opening Hours Functions ==========
@@ -262,8 +263,9 @@ export async function getShopInfo(): Promise<ShopInfo> {
         deliveryTimeMax: 45,
         deliveryFee: 2.99,
         minimumOrder: 10.00,
+        deliveryEnabled: true,
         description: "",
-        logo: "/assets/esk-logo.png", // Default logo
+        logo: "/assets/esk-logo.png",
       };
     }
     throw new Error(error.message);

@@ -41,10 +41,11 @@ interface Order {
     totalPrice: number;
   }[];
   delivery_address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
+    type?: "delivery" | "pickup";
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
     phone: string;
   };
   notes: string | null;
@@ -374,14 +375,26 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Delivery Address</h3>
-                <p>{selectedOrder.delivery_address.street}</p>
-                <p>
-                  {selectedOrder.delivery_address.city},{" "}
-                  {selectedOrder.delivery_address.state}{" "}
-                  {selectedOrder.delivery_address.zipCode}
-                </p>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-semibold mb-2">
+                  {selectedOrder.delivery_address.type === "pickup"
+                    ? "Fulfillment"
+                    : "Delivery Address"}
+                </h3>
+                {selectedOrder.delivery_address.type === "pickup" ? (
+                  <p className="font-medium text-primary">
+                    Pickup — customer will collect in store
+                  </p>
+                ) : (
+                  <>
+                    <p>{selectedOrder.delivery_address.street}</p>
+                    <p>
+                      {selectedOrder.delivery_address.city},{" "}
+                      {selectedOrder.delivery_address.state}{" "}
+                      {selectedOrder.delivery_address.zipCode}
+                    </p>
+                  </>
+                )}
+                <p className="text-sm text-gray-600 mt-1">
                   {selectedOrder.delivery_address.phone}
                 </p>
               </div>

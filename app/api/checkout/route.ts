@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { items, deliveryAddress, notes, guestName, guestEmail } = body;
+    const { items, orderType, deliveryAddress, notes, guestName, guestEmail } = body;
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -35,13 +35,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const isPickup = orderType === "pickup";
+
     const { data: shopInfoData } = await supabaseAdmin
       .from("shop_settings")
       .select("value")
       .eq("key", "shop_info")
       .single();
 
-    const deliveryFee = shopInfoData?.value?.deliveryFee || 2.99;
+    const deliveryFee = isPickup ? 0 : (shopInfoData?.value?.deliveryFee || 2.99);
 
     const subtotal = items.reduce(
       (sum: number, item: { totalPrice: number }) => sum + item.totalPrice,
@@ -101,14 +103,16 @@ export async function POST(request: NextRequest) {
       }),
     );
 
-    lineItems.push({
-      price_data: {
-        currency: "usd",
-        product_data: { name: "Delivery Fee" },
-        unit_amount: Math.round(deliveryFee * 100),
-      },
-      quantity: 1,
-    });
+    if (!isPickup) {
+      lineItems.push({
+        price_data: {
+          currency: "usd",
+          product_data: { name: "Delivery Fee" },
+          unit_amount: Math.round(deliveryFee * 100),
+        },
+        quantity: 1,
+      });
+    }
 
     lineItems.push({
       price_data: {
