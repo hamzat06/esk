@@ -49,11 +49,13 @@ interface Order {
     phone: string;
   };
   notes: string | null;
+  guest_name: string | null;
+  guest_email: string | null;
   profile: {
     full_name: string;
     email: string;
     phone: string | null;
-  };
+  } | null;
 }
 
 interface OrdersManagerProps {
@@ -116,12 +118,12 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
   // Filter orders by tab and search
   const filteredOrders = orders.filter((order) => {
     const matchesTab = selectedTab === "all" || order.status === selectedTab;
+    const customerName = order.profile?.full_name || order.guest_name || "";
+    const customerEmail = order.profile?.email || order.guest_email || "";
     const matchesSearch =
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.profile.full_name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase()) ||
-      order.profile.email.toLowerCase().includes(searchQuery.toLowerCase());
+      customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customerEmail.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesTab && matchesSearch;
   });
@@ -274,9 +276,11 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
                     {/* Customer */}
                     <div>
                       <p className="text-sm text-gray-500">Customer</p>
-                      <p className="font-semibold">{order.profile.full_name}</p>
+                      <p className="font-semibold">
+                        {order.profile?.full_name || order.guest_name || "Guest"}
+                      </p>
                       <p className="text-xs text-gray-600">
-                        {order.profile.email}
+                        {order.profile?.email || order.guest_email || "—"}
                       </p>
                     </div>
 
@@ -365,13 +369,15 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
             <CardContent className="space-y-4">
               <div>
                 <h3 className="font-semibold mb-2">Customer</h3>
-                <p>{selectedOrder.profile.full_name}</p>
+                <p>{selectedOrder.profile?.full_name || selectedOrder.guest_name || "Guest"}</p>
                 <p className="text-sm text-gray-600">
-                  {selectedOrder.profile.email}
+                  {selectedOrder.profile?.email || selectedOrder.guest_email || "—"}
                 </p>
-                <p className="text-sm text-gray-600">
-                  {selectedOrder.profile.phone}
-                </p>
+                {selectedOrder.profile?.phone && (
+                  <p className="text-sm text-gray-600">
+                    {selectedOrder.profile.phone}
+                  </p>
+                )}
               </div>
 
               <div>
