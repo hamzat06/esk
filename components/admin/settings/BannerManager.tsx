@@ -52,7 +52,7 @@ export default function BannerManager({
   const handleUploadSuccess = (result: any) => {
     const newBanner: BannerImage = {
       id: crypto.randomUUID(),
-      image: result.info.secure_url,
+      image: result.info.public_id,
       alt: "Banner image",
       order: banners.length,
     };

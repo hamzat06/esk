@@ -8,6 +8,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 import { getBanners } from "@/lib/queries/settings";
 import { ImageOff } from "lucide-react";
 
@@ -105,14 +106,25 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
               className="relative h-56 sm:h-80 md:h-96 lg:h-125"
             >
               <div className="relative w-full h-full">
-                <Image
-                  alt={banner.alt}
-                  src={banner.image}
-                  fill
-                  priority={index === 0}
-                  quality={90}
-                  className="object-cover object-center"
-                />
+                {banner.image.startsWith("http") ? (
+                  <Image
+                    alt={banner.alt}
+                    src={banner.image}
+                    fill
+                    priority={index === 0}
+                    unoptimized
+                    className="object-cover object-center"
+                  />
+                ) : (
+                  <CldImage
+                    alt={banner.alt}
+                    src={banner.image}
+                    fill
+                    loading={index === 0 ? "eager" : "lazy"}
+                    className="object-cover object-center"
+                    crop={{ type: "fill", source: true }}
+                  />
+                )}
 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/20 to-transparent" />
