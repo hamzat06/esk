@@ -44,7 +44,7 @@ export default function ImageUpload({
       formData.append(
         "upload_preset",
         process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ||
-          "your_upload_preset_here",
+          "ecommerce-products",
       );
 
       const response = await fetch(

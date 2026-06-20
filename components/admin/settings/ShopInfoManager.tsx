@@ -152,7 +152,7 @@ export default function ShopInfoManager({
                     <p className="text-sm text-gray-600 mb-2">Current logo</p>
                     <div className="flex gap-2">
                       <CldUploadWidget
-                        uploadPreset="esk_preset"
+                        uploadPreset="ecommerce-products"
                         onSuccess={handleLogoUpload}
                         options={{
                           maxFiles: 1,
@@ -193,7 +193,7 @@ export default function ShopInfoManager({
                 </div>
               ) : (
                 <CldUploadWidget
-                  uploadPreset="esk_preset"
+                  uploadPreset="ecommerce-products"
                   onSuccess={handleLogoUpload}
                   options={{
                     maxFiles: 1,

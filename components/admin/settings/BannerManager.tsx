@@ -171,7 +171,7 @@ export default function BannerManager({
 
         {/* Upload Button */}
         <CldUploadWidget
-          uploadPreset="esk_preset" // Replace with your Cloudinary upload preset
+          uploadPreset="ecommerce-products"
           onSuccess={handleUploadSuccess}
           options={{
             maxFiles: 1,
