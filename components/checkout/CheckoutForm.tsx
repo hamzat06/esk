@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
 import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
+import { supabase } from "@/lib/supabase/client";
 
 interface CheckoutFormProps {
   userName: string;
@@ -66,6 +67,27 @@ export default function CheckoutForm({
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shopOpen, setShopOpen] = useState(isOpen);
+
+  // Re-check open status client-side using browser local time (avoids server UTC mismatch)
+  useEffect(() => {
+    supabase
+      .from("shop_settings")
+      .select("value")
+      .eq("key", "opening_hours")
+      .single()
+      .then(({ data }) => {
+        if (!data?.value) return;
+        const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+        const now = new Date();
+        const schedule = data.value[days[now.getDay()]];
+        if (!schedule || schedule.closed) { setShopOpen(false); return; }
+        const cur = now.getHours() * 60 + now.getMinutes();
+        const [oh, om] = schedule.open.split(":").map(Number);
+        const [ch, cm] = schedule.close.split(":").map(Number);
+        setShopOpen(cur >= oh * 60 + om && cur <= ch * 60 + cm);
+      });
+  }, []);
 
   const [formData, setFormData] = useState({
     name: userName || "",
@@ -200,7 +222,7 @@ export default function CheckoutForm({
     );
   }
 
-  if (!isOpen) {
+  if (!shopOpen) {
     return (
       <div className="rounded-2xl bg-red-50 border border-red-200 p-8 text-center">
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
