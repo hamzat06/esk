@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add components/ShopCarousel.tsx components/admin/settings/BannerManager.tsx)",
+      "Bash(git -C /Users/techdadi/projects/react/esk commit -m ' *)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add lib/supabase/admin.ts)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add components/admin/orders/OrdersManager.tsx)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add app/api/checkout/route.ts components/checkout/CheckoutForm.tsx)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add app/actions/auth.ts components/auth/UserSignupForm.tsx app/\\\\\\(shop\\\\\\)/checkout/success/page.tsx)",
+      "Bash(git -C /Users/techdadi/projects/react/esk add components/checkout/CheckoutForm.tsx)"
     ]
   }
 }
