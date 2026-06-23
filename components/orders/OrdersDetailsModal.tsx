@@ -39,6 +39,15 @@ interface OrderDetailsModalProps {
 }
 
 const statusConfig: any = {
+  pending_payment: {
+    label: "Processing Payment",
+    icon: Clock,
+    variant: "info" as const,
+    color: "text-gray-600",
+    bgColor: "bg-gray-50",
+    borderColor: "border-gray-200",
+    description: "Your payment is being processed",
+  },
   delivered: {
     label: "Delivered",
     icon: CheckCircle2,
@@ -104,7 +113,7 @@ export default function OrderDetailsModal({
 
   if (!order) return null;
 
-  const status = statusConfig[order.status];
+  const status = statusConfig[order.status] ?? statusConfig.pending_payment;
   const StatusIcon = status.icon;
   const isActive = ["pending", "confirmed", "preparing", "ready"].includes(
     order.status,

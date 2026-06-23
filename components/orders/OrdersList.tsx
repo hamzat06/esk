@@ -36,6 +36,14 @@ type OrdersListProps = {
 };
 
 const statusConfig = {
+  pending_payment: {
+    label: "Processing Payment",
+    icon: Clock,
+    variant: "info" as const,
+    color: "text-gray-600",
+    bgColor: "bg-gray-50",
+    borderColor: "border-gray-200",
+  },
   delivered: {
     label: "Delivered",
     icon: CheckCircle2,
@@ -203,7 +211,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
       ) : (
         <div className="space-y-4">
           {filteredOrders.map((order) => {
-            const status = statusConfig[order.status];
+            const status = statusConfig[order.status] ?? statusConfig.pending_payment;
             const StatusIcon = status.icon;
             const isActive = [
               "pending",
