@@ -25,8 +25,10 @@ const CateringServiceModal = (props: CateringModalProps) => {
   const [showForm, setShowForm] = useState(false);
 
   React.useEffect(() => {
+    if (sessionStorage.getItem("catering_modal_seen")) return;
     const timer = setTimeout(() => {
       dialog.handleOpen();
+      sessionStorage.setItem("catering_modal_seen", "1");
     }, 2000);
 
     return () => clearTimeout(timer);
