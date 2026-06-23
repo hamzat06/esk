@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link"; // ADD THIS IMPORT
+import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,11 +9,33 @@ import { useCartStore } from "./stores/cartStore";
 import { toast } from "react-hot-toast";
 import { CldImage } from "next-cloudinary";
 import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
+import { supabase } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
 
 const Cart = ({ onClose }: { onClose: PureFunc }) => {
   const items = useCartStore((s) => s.items);
   const updateQty = useCartStore((s) => s.updateQuantity);
   const removeItem = useCartStore((s) => s.removeItem);
+  const [isOpen, setIsOpen] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("shop_settings")
+      .select("value")
+      .eq("key", "opening_hours")
+      .single()
+      .then(({ data }) => {
+        if (!data?.value) return;
+        const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+        const now = new Date();
+        const schedule = data.value[days[now.getDay()]];
+        if (!schedule || schedule.closed) { setIsOpen(false); return; }
+        const cur = now.getHours() * 60 + now.getMinutes();
+        const [oh, om] = schedule.open.split(":").map(Number);
+        const [ch, cm] = schedule.close.split(":").map(Number);
+        setIsOpen(cur >= oh * 60 + om && cur <= ch * 60 + cm);
+      });
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -199,15 +221,25 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
           </span>
         </div>
 
-        <Link href="/checkout" className="block">
+        {isOpen ? (
+          <Link href="/checkout" className="block">
+            <Button
+              onClick={onClose}
+              size="lg"
+              className="w-full text-base font-semibold rounded-full"
+            >
+              Proceed to Checkout
+            </Button>
+          </Link>
+        ) : (
           <Button
-            onClick={onClose}
             size="lg"
+            disabled
             className="w-full text-base font-semibold rounded-full"
           >
-            Proceed to Checkout
+            We&apos;re Closed — Come Back Later
           </Button>
-        </Link>
+        )}
       </div>
     </div>
   );
