@@ -162,19 +162,11 @@ export default function CheckoutForm({
         throw new Error(data.error || "Failed to create checkout session");
       }
 
-      const { getStripe } = await import("@/lib/stripe/client");
-      const stripe = await getStripe();
-
-      if (!stripe) throw new Error("Failed to load Stripe");
+      if (!data.url) throw new Error("No checkout URL returned");
 
       clearCart();
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (stripe as any).redirectToCheckout({
-        sessionId: data.sessionId,
-      });
-
-      if (result?.error) throw new Error(result.error.message);
+      window.location.href = data.url;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Checkout error:", err);

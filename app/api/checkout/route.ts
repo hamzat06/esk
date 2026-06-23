@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       sessionId: stripeSession.id,
+      url: stripeSession.url,
       orderId: order.id,
     });
   } catch (error: unknown) {
