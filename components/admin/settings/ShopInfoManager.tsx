@@ -37,6 +37,7 @@ export type ShopInfo = {
   deliveryEnabled: boolean;
   description?: string;
   logo?: string;
+  timezone?: string;
 };
 
 type ShopInfoManagerProps = {
@@ -361,6 +362,38 @@ export default function ShopInfoManager({
                 className="mt-1.5"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Timezone */}
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Clock className="size-4" />
+            Timezone
+          </h3>
+          <div>
+            <Label htmlFor="timezone">Shop Timezone *</Label>
+            <select
+              id="timezone"
+              value={shopInfo.timezone ?? "America/New_York"}
+              onChange={(e) =>
+                setShopInfo((prev) => ({ ...prev, timezone: e.target.value }))
+              }
+              className="mt-1.5 w-full rounded-xl border-2 border-gray-300 bg-white px-4 py-2 text-sm font-medium shadow-sm focus:border-primary focus:outline-none"
+            >
+              <option value="America/New_York">Eastern Time — America/New_York</option>
+              <option value="America/Chicago">Central Time — America/Chicago</option>
+              <option value="America/Denver">Mountain Time — America/Denver</option>
+              <option value="America/Los_Angeles">Pacific Time — America/Los_Angeles</option>
+              <option value="America/Anchorage">Alaska Time — America/Anchorage</option>
+              <option value="Pacific/Honolulu">Hawaii Time — Pacific/Honolulu</option>
+              <option value="Africa/Lagos">West Africa Time — Africa/Lagos</option>
+              <option value="Europe/London">London — Europe/London</option>
+              <option value="Europe/Paris">Central Europe — Europe/Paris</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              Used to determine if the shop is open or closed. Handles daylight saving automatically.
+            </p>
           </div>
         </div>
 

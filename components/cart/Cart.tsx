@@ -19,22 +19,22 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("shop_settings")
-      .select("value")
-      .eq("key", "opening_hours")
-      .single()
-      .then(({ data }) => {
-        if (!data?.value) return;
-        const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
-        const now = new Date();
-        const schedule = data.value[days[now.getDay()]];
-        if (!schedule || schedule.closed) { setIsOpen(false); return; }
-        const cur = now.getHours() * 60 + now.getMinutes();
-        const [oh, om] = schedule.open.split(":").map(Number);
-        const [ch, cm] = schedule.close.split(":").map(Number);
-        setIsOpen(cur >= oh * 60 + om && cur <= ch * 60 + cm);
-      });
+    Promise.all([
+      supabase.from("shop_settings").select("value").eq("key", "opening_hours").single(),
+      supabase.from("shop_settings").select("value").eq("key", "shop_info").single(),
+    ]).then(([hoursRes, infoRes]) => {
+      const hours = hoursRes.data?.value;
+      if (!hours) return;
+      const tz: string = infoRes.data?.value?.timezone ?? "America/New_York";
+      const now = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+      const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+      const schedule = hours[days[now.getDay()]];
+      if (!schedule || schedule.closed) { setIsOpen(false); return; }
+      const cur = now.getHours() * 60 + now.getMinutes();
+      const [oh, om] = schedule.open.split(":").map(Number);
+      const [ch, cm] = schedule.close.split(":").map(Number);
+      setIsOpen(cur >= oh * 60 + om && cur <= ch * 60 + cm);
+    });
   }, []);
 
   if (items.length === 0) {

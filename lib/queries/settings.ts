@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { shopLocalNow, isScheduleOpen, shopDayKey, DEFAULT_TIMEZONE } from "@/lib/utils/shopTime";
 
 export type DaySchedule = {
   open: string; // "HH:MM" format
@@ -45,6 +46,7 @@ export type ShopInfo = {
   deliveryEnabled: boolean;
   description?: string;
   logo?: string;
+  timezone?: string;
 };
 
 // ========== Opening Hours Functions ==========
@@ -76,56 +78,27 @@ export async function updateOpeningHours(hours: OpeningHours): Promise<void> {
 
 export async function isShopOpen(): Promise<boolean> {
   try {
-    const hours = await getOpeningHours();
-    const now = new Date();
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const dayName = days[now.getDay()] as keyof OpeningHours;
-    const daySchedule = hours[dayName];
-
-    if (daySchedule.closed) return false;
-
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const [openHour, openMin] = daySchedule.open.split(":").map(Number);
-    const [closeHour, closeMin] = daySchedule.close.split(":").map(Number);
-    const openTime = openHour * 60 + openMin;
-    const closeTime = closeHour * 60 + closeMin;
-
-    return currentMinutes >= openTime && currentMinutes <= closeTime;
+    const [hours, info] = await Promise.all([getOpeningHours(), getShopInfo()]);
+    const tz = info.timezone ?? DEFAULT_TIMEZONE;
+    const daySchedule = hours[shopDayKey(tz) as keyof OpeningHours];
+    return isScheduleOpen(daySchedule, tz);
   } catch (error) {
     console.error("Error checking shop hours:", error);
-    return true; // Default to open if error
+    return true;
   }
 }
 
 export async function getNextOpeningTime(): Promise<string | null> {
   try {
-    const hours = await getOpeningHours();
-    const now = new Date();
-    const days = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const dayName = days[now.getDay()] as keyof OpeningHours;
-    const todaySchedule = hours[dayName];
+    const [hours, info] = await Promise.all([getOpeningHours(), getShopInfo()]);
+    const tz = info.timezone ?? DEFAULT_TIMEZONE;
+    const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+    const now = shopLocalNow(tz);
+    const todaySchedule = hours[days[now.getDay()] as keyof OpeningHours];
 
-    // If closed today, return tomorrow's opening time
     if (todaySchedule.closed) {
-      const tomorrow = days[(now.getDay() + 1) % 7] as keyof OpeningHours;
-      const tomorrowSchedule = hours[tomorrow];
-      return tomorrowSchedule.closed ? null : tomorrowSchedule.open;
+      const tomorrow = hours[days[(now.getDay() + 1) % 7] as keyof OpeningHours];
+      return tomorrow.closed ? null : tomorrow.open;
     }
 
     return todaySchedule.open;

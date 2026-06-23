@@ -19,54 +19,52 @@ export default function BusinessHoursButton() {
   const [timeLabel, setTimeLabel] = useState("");
 
   useEffect(() => {
-    supabase
-      .from("shop_settings")
-      .select("value")
-      .eq("key", "opening_hours")
-      .single()
-      .then(({ data }) => {
-        if (!data?.value) return;
-        const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-        const now = new Date();
-        const dayKey = days[now.getDay()];
-        const schedule = data.value[dayKey];
-        const cur = now.getHours() * 60 + now.getMinutes();
+    Promise.all([
+      supabase.from("shop_settings").select("value").eq("key", "opening_hours").single(),
+      supabase.from("shop_settings").select("value").eq("key", "shop_info").single(),
+    ]).then(([hoursRes, infoRes]) => {
+      const hoursData = hoursRes.data?.value;
+      if (!hoursData) return;
+      const tz: string = infoRes.data?.value?.timezone ?? "America/New_York";
+      const now = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+      const schedule = hoursData[days[now.getDay()]];
+      const cur = now.getHours() * 60 + now.getMinutes();
 
-        if (!schedule || schedule.closed) {
-          setIsOpen(false);
-          // Find next open day
-          for (let i = 1; i <= 7; i++) {
-            const next = data.value[days[(now.getDay() + i) % 7]];
-            if (next && !next.closed) {
-              setTimeLabel(`Opens ${i === 1 ? "tomorrow" : days[(now.getDay() + i) % 7]} at ${formatTime(next.open)}`);
-              break;
-            }
-          }
-          return;
-        }
-
-        const [oh, om] = schedule.open.split(":").map(Number);
-        const [ch, cm] = schedule.close.split(":").map(Number);
-        const openMin = oh * 60 + om;
-        const closeMin = ch * 60 + cm;
-
-        if (cur >= openMin && cur <= closeMin) {
-          setIsOpen(true);
-          setTimeLabel(`Closes at ${formatTime(schedule.close)}`);
-        } else if (cur < openMin) {
-          setIsOpen(false);
-          setTimeLabel(`Opens at ${formatTime(schedule.open)}`);
-        } else {
-          setIsOpen(false);
-          for (let i = 1; i <= 7; i++) {
-            const next = data.value[days[(now.getDay() + i) % 7]];
-            if (next && !next.closed) {
-              setTimeLabel(`Opens ${i === 1 ? "tomorrow" : ""} at ${formatTime(next.open)}`);
-              break;
-            }
+      if (!schedule || schedule.closed) {
+        setIsOpen(false);
+        for (let i = 1; i <= 7; i++) {
+          const next = hoursData[days[(now.getDay() + i) % 7]];
+          if (next && !next.closed) {
+            setTimeLabel(`Opens ${i === 1 ? "tomorrow" : days[(now.getDay() + i) % 7]} at ${formatTime(next.open)}`);
+            break;
           }
         }
-      });
+        return;
+      }
+
+      const [oh, om] = schedule.open.split(":").map(Number);
+      const [ch, cm] = schedule.close.split(":").map(Number);
+      const openMin = oh * 60 + om;
+      const closeMin = ch * 60 + cm;
+
+      if (cur >= openMin && cur <= closeMin) {
+        setIsOpen(true);
+        setTimeLabel(`Closes at ${formatTime(schedule.close)}`);
+      } else if (cur < openMin) {
+        setIsOpen(false);
+        setTimeLabel(`Opens at ${formatTime(schedule.open)}`);
+      } else {
+        setIsOpen(false);
+        for (let i = 1; i <= 7; i++) {
+          const next = hoursData[days[(now.getDay() + i) % 7]];
+          if (next && !next.closed) {
+            setTimeLabel(`Opens ${i === 1 ? "tomorrow" : ""} at ${formatTime(next.open)}`);
+            break;
+          }
+        }
+      }
+    });
   }, []);
 
   return (
