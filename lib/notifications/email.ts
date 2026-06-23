@@ -183,7 +183,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "EddySylva Kitchen <orders@eddysylvakitchen.com>",
+          from: "EddySylva Kitchen <orders@eddysylvakitchen.us>",
           to: data.customerEmail,
           subject: `Order Confirmation - #${data.orderNumber}`,
           html: emailHtml,
@@ -210,7 +210,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 
 // Send order status update email
 export async function sendOrderStatusEmail(
-  orderId: string,
+  _orderId: string,
   newStatus: string,
   customerEmail: string,
   customerName: string,
@@ -353,7 +353,7 @@ export async function sendOrderStatusEmail(
           },
         ],
         from: {
-          email: "orders@eddysylvakitchen.com",
+          email: "orders@eddysylvakitchen.us",
           name: "EddySylva Kitchen",
         },
         subject: `${statusInfo.title} - Order #${orderNumber}`,
