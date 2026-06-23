@@ -31,6 +31,7 @@ import {
 import type { Order } from "@/lib/queries/orders";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useCartStore } from "@/components/cart/stores/cartStore";
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -110,6 +111,8 @@ export default function OrderDetailsModal({
   onClose,
 }: OrderDetailsModalProps) {
   const [copied, setCopied] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const addItem = useCartStore((s) => s.addItem);
 
   if (!order) return null;
 
@@ -132,18 +135,24 @@ export default function OrderDetailsModal({
   };
 
   const handleReorder = () => {
+    order.items.forEach((item) => addItem({ ...item }));
     toast.success("Items added to cart!");
     onClose();
   };
 
-  const handleCancelOrder = () => {
-    if (
-      confirm(
-        "Are you sure you want to cancel this order? This action cannot be undone.",
-      )
-    ) {
+  const handleCancelOrder = async () => {
+    if (!confirm("Are you sure you want to cancel this order? This action cannot be undone.")) return;
+    setIsCancelling(true);
+    try {
+      const res = await fetch(`/api/user/orders/${order.id}/cancel`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to cancel order");
       toast.success("Order cancelled successfully");
       onClose();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to cancel order");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -438,9 +447,10 @@ export default function OrderDetailsModal({
                 variant="destructive"
                 className="sm:flex-1 rounded-xl"
                 onClick={handleCancelOrder}
+                disabled={isCancelling}
               >
                 <XCircle className="size-4 mr-2" />
-                Cancel Order
+                {isCancelling ? "Cancelling..." : "Cancel Order"}
               </Button>
             )}
             <Button

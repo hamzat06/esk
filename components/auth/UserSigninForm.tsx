@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Mail, Lock, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function UserSigninForm({
   className,
@@ -52,7 +53,7 @@ export default function UserSigninForm({
         throw new Error("Failed to create session");
       }
 
-      // Success! Redirect to home
+      toast.success("Welcome back!");
       router.push("/");
       router.refresh();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
