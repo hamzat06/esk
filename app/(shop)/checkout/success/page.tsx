@@ -68,12 +68,25 @@ export default async function CheckoutSuccessPage({
               </div>
 
               <div className="pb-3 border-b">
-                <p className="text-gray-600 mb-2">Delivery Address</p>
-                <p className="font-semibold">{order.delivery_address.street}</p>
-                <p className="text-gray-600">
-                  {order.delivery_address.city}, {order.delivery_address.state}{" "}
-                  {order.delivery_address.zipCode}
+                <p className="text-gray-600 mb-2">
+                  {order.delivery_address.type === "pickup"
+                    ? "Fulfillment"
+                    : "Delivery Address"}
                 </p>
+                {order.delivery_address.type === "pickup" ? (
+                  <p className="font-semibold">Pickup — collect in store</p>
+                ) : (
+                  <>
+                    <p className="font-semibold">
+                      {order.delivery_address.street}
+                    </p>
+                    <p className="text-gray-600">
+                      {order.delivery_address.city},{" "}
+                      {order.delivery_address.state}{" "}
+                      {order.delivery_address.zipCode}
+                    </p>
+                  </>
+                )}
                 <p className="text-gray-600 mt-1">
                   {order.delivery_address.phone}
                 </p>

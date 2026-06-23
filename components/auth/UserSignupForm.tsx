@@ -11,7 +11,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase/client";
+import { signUpAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 
@@ -61,33 +61,15 @@ export default function UserSignupForm({
     setIsLoading(true);
 
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const result = await signUpAction({
         email: formData.email,
         password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName.trim(),
-          },
-        },
+        fullName: formData.fullName.trim(),
       });
 
-      if (authError) throw authError;
+      if (result.error) throw new Error(result.error);
 
-      if (!authData.user) {
-        throw new Error("Failed to create user");
-      }
-
-      // If email confirmation is required, show message
-      if (authData.user && !authData.session) {
-        setError(
-          "Please check your email to confirm your account before signing in."
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      // Success! Redirect to home
+      // Success — signed in immediately, no email verification needed
       router.push("/");
       router.refresh();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
