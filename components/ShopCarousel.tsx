@@ -6,6 +6,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
@@ -26,13 +27,14 @@ type ShopCarouselProps = {
 const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
   const [banners, setBanners] = useState<BannerImage[]>(initialBanners || []);
   const [isLoading, setIsLoading] = useState(!initialBanners);
+  const [api, setApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: false }),
   );
 
   useEffect(() => {
-    // Fetch latest banners if not provided as initial props
     if (!initialBanners) {
       const fetchBanners = async () => {
         try {
@@ -51,7 +53,14 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
     }
   }, [initialBanners]);
 
-  // Show loading state
+  useEffect(() => {
+    if (!api) return;
+    setCurrentSlide(api.selectedScrollSnap());
+    api.on("select", () => {
+      setCurrentSlide(api.selectedScrollSnap());
+    });
+  }, [api]);
+
   if (isLoading) {
     return (
       <div className="relative bg-gray-100 h-56 sm:h-80 md:h-96 lg:h-125 flex items-center justify-center">
@@ -63,7 +72,6 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
     );
   }
 
-  // Show placeholder if no banners
   if (banners.length === 0) {
     return (
       <div className="relative bg-linear-to-br from-gray-100 via-gray-50 to-gray-100 h-56 sm:h-80 md:h-96 lg:h-125 flex items-center justify-center border-b-2 border-gray-200">
@@ -80,7 +88,6 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
           </p>
         </div>
 
-        {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-10 left-10 size-32 bg-gray-200/30 rounded-full blur-3xl"></div>
           <div className="absolute bottom-10 right-10 size-40 bg-gray-200/20 rounded-full blur-3xl"></div>
@@ -92,11 +99,13 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
   return (
     <div className="relative bg-gray-900">
       <Carousel
+        setApi={setApi}
         plugins={[autoplay.current]}
         className="w-full"
         opts={{
           align: "start",
           loop: true,
+          watchDrag: false,
         }}
       >
         <CarouselContent>
@@ -136,12 +145,16 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
 
       {/* Carousel Indicators */}
       {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
           {banners.map((_, index) => (
             <div
               key={index}
-              className="w-2 h-2 rounded-full bg-white/60 transition-all duration-300"
               aria-label={`Slide ${index + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                index === currentSlide
+                  ? "w-5 bg-white"
+                  : "w-2 bg-white/50"
+              }`}
             />
           ))}
         </div>
