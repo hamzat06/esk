@@ -34,6 +34,7 @@ interface CheckoutFormProps {
   } | null;
   deliveryFee: number;
   deliveryEnabled: boolean;
+  minimumOrder: number;
   isOpen: boolean;
   nextOpenTime: string | null;
   shopAddress: {
@@ -50,6 +51,7 @@ export default function CheckoutForm({
   userName,
   userEmail,
   deliveryEnabled,
+  minimumOrder,
   isOpen,
   nextOpenTime,
   shopAddress,
@@ -113,9 +115,16 @@ export default function CheckoutForm({
     if (error) setError(null);
   };
 
+  const isBelowMinimum = orderType === "delivery" && minimumOrder > 0 && subtotal < minimumOrder;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (isBelowMinimum) {
+      setError(`Minimum order for delivery is $${minimumOrder.toFixed(2)}. Add $${(minimumOrder - subtotal).toFixed(2)} more to proceed.`);
+      return;
+    }
 
     if (isGuest) {
       if (!formData.name.trim()) {
@@ -565,11 +574,20 @@ export default function CheckoutForm({
                   </span>
                 </div>
 
+                {isBelowMinimum && (
+                  <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mt-2">
+                    <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                    <span>
+                      Minimum order for delivery is <strong>${minimumOrder.toFixed(2)}</strong>. Add <strong>${(minimumOrder - subtotal).toFixed(2)}</strong> more to your cart.
+                    </span>
+                  </div>
+                )}
+
                 <Button
                   type="submit"
                   size="lg"
                   className="w-full mt-4"
-                  disabled={isLoading}
+                  disabled={isLoading || isBelowMinimum}
                 >
                   {isLoading ? (
                     <>

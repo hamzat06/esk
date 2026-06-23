@@ -19,6 +19,7 @@ import {
   MapPin,
   Calendar,
   ChefHat,
+  Navigation,
 } from "lucide-react";
 import OrderDetailsModal from "./OrdersDetailsModal";
 import Link from "next/link";
@@ -91,6 +92,14 @@ const statusConfig = {
     color: "text-green-600",
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
+  },
+  out_for_delivery: {
+    label: "Out for Delivery",
+    icon: Navigation,
+    variant: "info" as const,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
   },
 };
 

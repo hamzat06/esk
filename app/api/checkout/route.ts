@@ -53,11 +53,20 @@ export async function POST(request: NextRequest) {
       .single();
 
     const deliveryFee = isPickup ? 0 : (shopInfoData?.value?.deliveryFee || 2.99);
+    const minimumOrder = shopInfoData?.value?.minimumOrder || 0;
 
     const subtotal = items.reduce(
       (sum: number, item: { totalPrice: number }) => sum + item.totalPrice,
       0,
     );
+
+    if (!isPickup && minimumOrder > 0 && subtotal < minimumOrder) {
+      return NextResponse.json(
+        { error: `Minimum order for delivery is $${minimumOrder.toFixed(2)}` },
+        { status: 400 },
+      );
+    }
+
     const tax = subtotal * 0.08;
     const total = subtotal + deliveryFee + tax;
 

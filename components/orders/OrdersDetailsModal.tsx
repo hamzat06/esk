@@ -27,6 +27,7 @@ import {
   AlertCircle,
   Copy,
   CheckCheck,
+  Navigation,
 } from "lucide-react";
 import type { Order } from "@/lib/queries/orders";
 import { useState } from "react";
@@ -102,6 +103,15 @@ const statusConfig: any = {
     bgColor: "bg-green-50",
     borderColor: "border-green-200",
     description: "Your order is ready for pickup",
+  },
+  out_for_delivery: {
+    label: "Out for Delivery",
+    icon: Navigation,
+    variant: "info" as const,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-50",
+    borderColor: "border-indigo-200",
+    description: "Your order is on its way to you!",
   },
 };
 

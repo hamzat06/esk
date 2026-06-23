@@ -28,6 +28,7 @@ export default async function CheckoutPage() {
   const shopInfo = shopInfoData?.value || {};
   const deliveryFee = shopInfo.deliveryFee || 2.99;
   const deliveryEnabled = shopInfo.deliveryEnabled !== false;
+  const minimumOrder = shopInfo.minimumOrder || 0;
 
   const [shopOpen, nextOpenTime] = await Promise.all([
     isShopOpen(),
@@ -52,6 +53,7 @@ export default async function CheckoutPage() {
           defaultAddress={profile?.default_address}
           deliveryFee={deliveryFee}
           deliveryEnabled={deliveryEnabled}
+          minimumOrder={minimumOrder}
           isOpen={shopOpen}
           nextOpenTime={nextOpenTime}
           shopAddress={{
