@@ -1,0 +1,21 @@
+{
+  "name": "EddySylva Kitchen",
+  "short_name": "ESK",
+  "description": "Authentic Nigerian cuisine — order online for delivery or pickup.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#A62828",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
