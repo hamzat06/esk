@@ -219,16 +219,16 @@ export default function OrderDetailsModal({
 
               {/* Status Badge */}
               <div
-                className={`flex flex-col items-end gap-2 shrink-0 p-4 rounded-xl border-2 ${status.borderColor} bg-white shadow-sm`}
+                className={`flex flex-col items-end gap-1.5 shrink-0 p-2 sm:p-4 rounded-xl border-2 ${status.borderColor} bg-white shadow-sm`}
               >
-                <div className="flex items-center gap-2">
-                  <StatusIcon className={`size-5 ${status.color}`} />
-                  <span className={`font-bold text-base ${status.color}`}>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <StatusIcon className={`size-4 sm:size-5 ${status.color}`} />
+                  <span className={`font-bold text-sm sm:text-base ${status.color}`}>
                     {status.label}
                   </span>
                 </div>
                 {isActive && (
-                  <span className="text-xs text-gray-600 font-medium">
+                  <span className="text-xs text-gray-600 font-medium hidden sm:block">
                     Estimated: 30-45 min
                   </span>
                 )}
@@ -412,12 +412,14 @@ export default function OrderDetailsModal({
                     ${(order.subtotal ?? 0).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Delivery Fee</span>
-                  <span className="font-semibold text-gray-900">
-                    ${(order.deliveryFee ?? 0).toFixed(2)}
-                  </span>
-                </div>
+                {(order.deliveryFee ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-700">Delivery Fee</span>
+                    <span className="font-semibold text-gray-900">
+                      ${(order.deliveryFee ?? 0).toFixed(2)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Tax</span>
                   <span className="font-semibold text-gray-900">

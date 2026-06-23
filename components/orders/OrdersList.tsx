@@ -174,7 +174,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
 
           {/* Status Filter */}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-50 h-11 rounded-xl border-gray-300">
+            <SelectTrigger className="w-full sm:w-56 h-11 rounded-xl border-gray-300">
               <Filter className="size-4 mr-2" />
               <SelectValue placeholder="All Orders" />
             </SelectTrigger>

@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
 import { isShopOpen, getNextOpeningTime } from "@/lib/queries/settings";
+
+export const metadata: Metadata = {
+  title: "Checkout | EddySylva Kitchen",
+};
 
 export default async function CheckoutPage() {
   const supabase = await createClient();

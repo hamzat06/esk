@@ -1,9 +1,14 @@
+import type { Metadata } from "next";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Order Confirmed | EddySylva Kitchen",
+};
 
 export default async function CheckoutSuccessPage({
   searchParams,

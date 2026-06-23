@@ -67,7 +67,7 @@ const ProductCard = ({
         )}
 
         <Button
-          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 h-10 rounded-full border border-white p-1.5 transition-transform duration-300 hover:scale-110"
+          className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 h-11 rounded-full border border-white p-2 transition-transform duration-300 hover:scale-110"
           disabled={!product.in_stock}
         >
           <Plus className="size-4 sm:size-5" />

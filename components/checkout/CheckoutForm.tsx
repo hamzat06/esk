@@ -233,7 +233,7 @@ export default function CheckoutForm({
 
   if (!shopOpen) {
     return (
-      <div className="rounded-2xl bg-red-50 border border-red-200 p-8 text-center">
+      <div className="rounded-2xl bg-red-50 border border-red-200 p-4 sm:p-8 text-center">
         <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
           <AlertCircle className="size-8 text-red-600" />
         </div>

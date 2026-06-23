@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import OrdersListClient from "@/components/orders/OrdersListClient";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "My Orders | EddySylva Kitchen",
+  description: "Track and manage all your orders from EddySylva Kitchen.",
+};
 
 export default async function OrdersPage() {
   const supabase = await createClient();
@@ -53,20 +59,20 @@ export default async function OrdersPage() {
       <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 gap-4">
             <h1 className="text-3xl sm:text-4xl font-bold font-playfair text-gray-900">
               My Orders
             </h1>
             {transformedOrders.length > 0 && (
               <Button
                 variant="outline"
-                size="lg"
-                className="rounded-xl"
+                size="sm"
+                className="rounded-xl shrink-0 sm:size-lg"
                 asChild
               >
                 <Link href="/">
-                  <ShoppingBag className="size-4 mr-2" />
-                  Shop More
+                  <ShoppingBag className="size-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Shop More</span>
                 </Link>
               </Button>
             )}
