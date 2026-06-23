@@ -14,7 +14,25 @@ export async function GET() {
 
     if (error) throw error;
 
-    return NextResponse.json(data || []);
+    const transformed = (data || []).map((order) => ({
+      id: order.id,
+      orderNumber: order.order_number,
+      userId: order.user_id,
+      items: order.items,
+      subtotal: Number(order.subtotal),
+      deliveryFee: Number(order.delivery_fee),
+      tax: Number(order.tax),
+      total: Number(order.total),
+      deliveryAddress: order.delivery_address,
+      status: order.status,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at,
+      notes: order.notes,
+      paymentIntentId: order.payment_intent_id,
+      stripeSessionId: order.stripe_session_id,
+    }));
+
+    return NextResponse.json(transformed);
   } catch (error) {
     console.error("User orders API error:", error);
     return NextResponse.json(

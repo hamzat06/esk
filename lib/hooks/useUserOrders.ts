@@ -6,20 +6,20 @@ import { supabase } from "@/lib/supabase/client";
 
 export interface UserOrder {
   id: string;
-  order_number: string;
-  user_id: string;
+  orderNumber: string;
+  userId: string;
   items: any;
   subtotal: number;
-  delivery_fee: number;
+  deliveryFee: number;
   tax: number;
   total: number;
-  delivery_address: any;
+  deliveryAddress: any;
   status: string;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
-  payment_intent_id: string | null;
-  stripe_session_id: string | null;
+  createdAt: string;
+  updatedAt: string;
+  paymentIntentId: string | null;
+  stripeSessionId: string | null;
 }
 
 async function fetchUserOrders(): Promise<UserOrder[]> {
@@ -48,11 +48,17 @@ export function useUserOrders(initialData?: UserOrder[]) {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders" },
         (payload) => {
-          // Update just the changed order in the cache without a full refetch
+          const n = payload.new as any;
           queryClient.setQueryData<UserOrder[]>(["user", "orders"], (old) => {
             if (!old) return old;
             return old.map((o) =>
-              o.id === payload.new.id ? { ...o, ...payload.new } : o,
+              o.id === n.id
+                ? {
+                    ...o,
+                    status: n.status ?? o.status,
+                    updatedAt: n.updated_at ?? o.updatedAt,
+                  }
+                : o,
             );
           });
         },
