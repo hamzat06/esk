@@ -215,7 +215,14 @@ export default function CheckoutForm({
         {nextOpenTime && (
           <p className="text-sm text-gray-500">
             We open at{" "}
-            <span className="font-semibold text-gray-700">{nextOpenTime}</span>
+            <span className="font-semibold text-gray-700">
+              {(() => {
+                const [h, m] = nextOpenTime.split(":").map(Number);
+                const period = h >= 12 ? "PM" : "AM";
+                const display = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                return `${display}:${String(m).padStart(2, "0")} ${period}`;
+              })()}
+            </span>
           </p>
         )}
       </div>

@@ -95,7 +95,7 @@ export default async function Page() {
                     variant="outline"
                     className="px-3 py-1 text-sm border-gray-300 bg-white"
                   >
-                    ${shopInfo.deliveryFee.toFixed(2)} delivery
+                    ${Number(shopInfo.deliveryFee ?? 2.99).toFixed(2)} delivery
                   </Badge>
                   <Badge
                     variant="outline"

@@ -87,9 +87,11 @@ export default async function CheckoutSuccessPage({
                     </p>
                   </>
                 )}
-                <p className="text-gray-600 mt-1">
-                  {order.delivery_address.phone}
-                </p>
+                {order.delivery_address?.phone && (
+                  <p className="text-gray-600 mt-1">
+                    {order.delivery_address.phone}
+                  </p>
+                )}
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
