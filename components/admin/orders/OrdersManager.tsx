@@ -340,12 +340,28 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
 
                     {/* Status & Actions */}
                     <div className="flex flex-col gap-2">
-                      <Badge
-                        className={`${statusColors[order.status]} flex items-center gap-1.5 w-fit`}
-                      >
-                        <StatusIcon className="size-3.5" />
-                        {order.status}
-                      </Badge>
+                      <div className="flex flex-wrap gap-1.5">
+                        <Badge
+                          className={`${statusColors[order.status]} flex items-center gap-1.5 w-fit`}
+                        >
+                          <StatusIcon className="size-3.5" />
+                          {order.status.replace(/_/g, " ")}
+                        </Badge>
+                        <Badge
+                          className={`flex items-center gap-1 w-fit ${
+                            order.delivery_address?.type === "pickup"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-sky-100 text-sky-800"
+                          }`}
+                        >
+                          {order.delivery_address?.type === "pickup" ? (
+                            <ShoppingBag className="size-3" />
+                          ) : (
+                            <Truck className="size-3" />
+                          )}
+                          {order.delivery_address?.type === "pickup" ? "Pickup" : "Delivery"}
+                        </Badge>
+                      </div>
                       <Select
                         value={order.status}
                         onValueChange={(value) =>
@@ -409,6 +425,9 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
               <CardTitle className="font-playfair">
                 Order #{selectedOrder.order_number}
               </CardTitle>
+              <p className="text-sm text-gray-500">
+                {format(new Date(selectedOrder.created_at), "MMM d, yyyy · h:mm a")}
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
