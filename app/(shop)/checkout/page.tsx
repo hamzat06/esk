@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import CheckoutForm from "@/components/checkout/CheckoutForm";
+import { isShopOpen, getNextOpeningTime } from "@/lib/queries/settings";
 
 export default async function CheckoutPage() {
   const supabase = await createClient();
@@ -26,7 +27,12 @@ export default async function CheckoutPage() {
 
   const shopInfo = shopInfoData?.value || {};
   const deliveryFee = shopInfo.deliveryFee || 2.99;
-  const deliveryEnabled = shopInfo.deliveryEnabled !== false; // default true
+  const deliveryEnabled = shopInfo.deliveryEnabled !== false;
+
+  const [shopOpen, nextOpenTime] = await Promise.all([
+    isShopOpen(),
+    getNextOpeningTime(),
+  ]);
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -46,6 +52,8 @@ export default async function CheckoutPage() {
           defaultAddress={profile?.default_address}
           deliveryFee={deliveryFee}
           deliveryEnabled={deliveryEnabled}
+          isOpen={shopOpen}
+          nextOpenTime={nextOpenTime}
           shopAddress={{
             address: shopInfo.address || "255 South 60th Street",
             city: shopInfo.city || "Philadelphia",

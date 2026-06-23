@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isShopOpen } from "@/lib/queries/settings";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,14 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { items, orderType, deliveryAddress, notes, guestName, guestEmail } = body;
+
+    const shopCurrentlyOpen = await isShopOpen();
+    if (!shopCurrentlyOpen) {
+      return NextResponse.json(
+        { error: "We are currently closed. Please order during business hours." },
+        { status: 400 },
+      );
+    }
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });

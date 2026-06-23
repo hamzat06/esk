@@ -33,6 +33,8 @@ interface CheckoutFormProps {
   } | null;
   deliveryFee: number;
   deliveryEnabled: boolean;
+  isOpen: boolean;
+  nextOpenTime: string | null;
   shopAddress: {
     address: string;
     city: string;
@@ -47,6 +49,8 @@ export default function CheckoutForm({
   userName,
   userEmail,
   deliveryEnabled,
+  isOpen,
+  nextOpenTime,
   shopAddress,
 }: CheckoutFormProps) {
   const router = useRouter();
@@ -193,6 +197,28 @@ export default function CheckoutForm({
           <Button onClick={() => router.push("/")}>Continue Shopping</Button>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (!isOpen) {
+    return (
+      <div className="rounded-2xl bg-red-50 border border-red-200 p-8 text-center">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <AlertCircle className="size-8 text-red-600" />
+        </div>
+        <h2 className="text-2xl font-bold font-playfair text-gray-900 mb-2">
+          We&apos;re currently closed
+        </h2>
+        <p className="text-gray-600 mb-1">
+          Orders cannot be placed outside of business hours.
+        </p>
+        {nextOpenTime && (
+          <p className="text-sm text-gray-500">
+            We open at{" "}
+            <span className="font-semibold text-gray-700">{nextOpenTime}</span>
+          </p>
+        )}
+      </div>
     );
   }
 
