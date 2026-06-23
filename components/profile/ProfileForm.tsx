@@ -126,7 +126,7 @@ export default function ProfileForm({ profile }: { profile: ProfileData }) {
               placeholder="123 Main St"
             />
           </Field>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field>
               <FieldLabel className="font-semibold">City</FieldLabel>
               <Input
