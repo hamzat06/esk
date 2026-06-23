@@ -65,6 +65,7 @@ interface OrdersManagerProps {
 }
 
 const statusColors: Record<OrderStatus, string> = {
+  pending_payment: "bg-gray-100 text-gray-600",
   pending: "bg-yellow-100 text-yellow-800",
   confirmed: "bg-blue-100 text-blue-800",
   preparing: "bg-purple-100 text-purple-800",
@@ -76,6 +77,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const statusIcons: Record<OrderStatus, any> = {
+  pending_payment: Clock,
   pending: Clock,
   confirmed: CheckCircle,
   preparing: ChefHat,

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 
 export type OrderStatus =
+  | "pending_payment"
   | "pending"
   | "confirmed"
   | "preparing"
