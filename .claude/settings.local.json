@@ -16,7 +16,9 @@
       "Bash(git -C /Users/techdadi/projects/react/esk add components/orders/OrdersDetailsModal.tsx components/auth/UserSigninForm.tsx app/api/user/orders/\\\\[id\\\\]/cancel/route.ts)",
       "Bash(npx web-push *)",
       "Bash(npm i *)",
-      "Bash(mkdir -p /Users/techdadi/projects/react/esk/app/api/notifications/subscribe /Users/techdadi/projects/react/esk/app/api/notifications/unsubscribe /Users/techdadi/projects/react/esk/app/api/admin/orders/\\\\[id\\\\]/status)"
+      "Bash(mkdir -p /Users/techdadi/projects/react/esk/app/api/notifications/subscribe /Users/techdadi/projects/react/esk/app/api/notifications/unsubscribe /Users/techdadi/projects/react/esk/app/api/admin/orders/\\\\[id\\\\]/status)",
+      "Bash(npx eslint *)",
+      "Bash(node_modules/.bin/next lint *)"
     ],
     "additionalDirectories": [
       "/Users/techdadi/projects/react/esk/app/api/admin/orders/[id]"

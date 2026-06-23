@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {

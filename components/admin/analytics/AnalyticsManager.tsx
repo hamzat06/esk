@@ -29,7 +29,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
-  Calendar,
   DollarSign,
   Package,
   ShoppingBag,

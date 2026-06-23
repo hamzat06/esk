@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { validateApiPermission } from "@/lib/auth/permissions";
-import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
