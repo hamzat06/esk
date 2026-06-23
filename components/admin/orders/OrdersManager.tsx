@@ -34,6 +34,9 @@ import {
 interface Order {
   id: string;
   order_number: string;
+  subtotal: number;
+  delivery_fee: number;
+  tax: number;
   total: number;
   status: OrderStatus;
   created_at: string;
@@ -469,8 +472,22 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
                 </div>
               )}
 
-              <div className="pt-4 border-t">
-                <div className="flex justify-between text-lg font-bold">
+              <div className="pt-4 border-t space-y-1.5">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Subtotal</span>
+                  <span>${Number(selectedOrder.subtotal).toFixed(2)}</span>
+                </div>
+                {Number(selectedOrder.delivery_fee) > 0 && (
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Delivery Fee</span>
+                    <span>${Number(selectedOrder.delivery_fee).toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Tax</span>
+                  <span>${Number(selectedOrder.tax).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-lg font-bold pt-1.5 border-t">
                   <span>Total</span>
                   <span className="text-primary">
                     ${Number(selectedOrder.total).toFixed(2)}
