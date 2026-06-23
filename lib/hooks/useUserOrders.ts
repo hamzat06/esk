@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase/client";
+import { playSound } from "@/lib/sounds";
 
 export interface UserOrder {
   id: string;
@@ -61,6 +62,10 @@ export function useUserOrders(initialData?: UserOrder[]) {
                 : o,
             );
           });
+          const soundStatuses = ["confirmed", "preparing", "ready", "out_for_delivery", "delivered", "cancelled"];
+          if (soundStatuses.includes(n.status)) {
+            playSound("/sounds/order-sound.wav");
+          }
         },
       )
       .on(

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { playSound } from "@/lib/sounds";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -105,6 +106,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
         (payload) => {
           setOrders((prev) => [payload.new as Order, ...prev]);
           toast.success("New order received!");
+          playSound("/sounds/order-bell-sound.wav");
         },
       )
       .on(
