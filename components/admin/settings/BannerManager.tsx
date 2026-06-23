@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { CldUploadWidget } from "next-cloudinary";
+import { CldUploadWidget, CldImage } from "next-cloudinary";
 import { toast } from "react-hot-toast";
 import {
   ImagePlus,
@@ -50,16 +50,17 @@ export default function BannerManager({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUploadSuccess = (result: any) => {
-    const newBanner: BannerImage = {
-      id: crypto.randomUUID(),
-      image: result.info.public_id,
-      alt: "Banner image",
-      order: banners.length,
-    };
-
-    const updatedBanners = [...banners, newBanner];
-    setBanners(updatedBanners);
-    saveBanners(updatedBanners);
+    setBanners((prev) => {
+      const newBanner: BannerImage = {
+        id: crypto.randomUUID(),
+        image: result.info.public_id,
+        alt: "Banner image",
+        order: prev.length,
+      };
+      const updatedBanners = [...prev, newBanner];
+      saveBanners(updatedBanners);
+      return updatedBanners;
+    });
   };
 
   const handleDelete = async (id: string) => {
@@ -233,12 +234,11 @@ export default function BannerManager({
 
                   {/* Banner Preview */}
                   <div className="relative w-32 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                    <Image
-                      src={banner.image}
-                      alt={banner.alt}
-                      fill
-                      className="object-cover"
-                    />
+                    {banner.image.startsWith("http") ? (
+                      <Image src={banner.image} alt={banner.alt} fill className="object-cover" unoptimized />
+                    ) : (
+                      <CldImage src={banner.image} alt={banner.alt} fill className="object-cover" crop={{ type: "fill", source: true }} />
+                    )}
                   </div>
 
                   {/* Banner Info */}
@@ -298,12 +298,11 @@ export default function BannerManager({
             {/* Banner Preview */}
             {editingBanner && (
               <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-                <Image
-                  src={editingBanner.image}
-                  alt={editingBanner.alt}
-                  fill
-                  className="object-cover"
-                />
+                {editingBanner.image.startsWith("http") ? (
+                  <Image src={editingBanner.image} alt={editingBanner.alt} fill className="object-cover" unoptimized />
+                ) : (
+                  <CldImage src={editingBanner.image} alt={editingBanner.alt} fill className="object-cover" crop={{ type: "fill", source: true }} />
+                )}
               </div>
             )}
 
