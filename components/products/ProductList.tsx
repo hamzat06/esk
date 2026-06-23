@@ -49,12 +49,12 @@ const ProductList = ({ products, categories }: ProductListProps) => {
 
     if (searchQuery) {
       const exactMatches = filtered.filter(
-        (p) => p.title.toLowerCase() === searchQuery.toLowerCase(),
+        (p) => p.title?.toLowerCase() === searchQuery.toLowerCase(),
       );
       if (exactMatches.length > 0) return exactMatches;
 
       return filtered.filter((p) =>
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()),
+        p.title?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 

@@ -65,7 +65,7 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
     );
   }
 
-  const subtotal = items.reduce((sum, i) => sum + i.totalPrice, 0);
+  const subtotal = items.reduce((sum, i) => sum + (i.totalPrice ?? 0), 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
@@ -159,7 +159,7 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
                 {/* Price and Quantity */}
                 <div className="flex items-center justify-between mt-3">
                   <p className="text-xl sm:text-2xl font-semibold font-playfair">
-                    ${item.totalPrice.toFixed(2)}
+                    ${(item.totalPrice ?? 0).toFixed(2)}
                   </p>
 
                   {/* Quantity controls */}

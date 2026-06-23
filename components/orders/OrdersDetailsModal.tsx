@@ -307,13 +307,13 @@ export default function OrderDetailsModal({
             {/* Delivery / Pickup Information */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                {order.deliveryAddress.type === "pickup" ? (
+                {order.deliveryAddress?.type === "pickup" ? (
                   <ShoppingBag className="size-5 text-gray-700" />
                 ) : (
                   <Truck className="size-5 text-gray-700" />
                 )}
                 <h3 className="text-lg font-bold text-gray-900">
-                  {order.deliveryAddress.type === "pickup"
+                  {order.deliveryAddress?.type === "pickup"
                     ? "Pickup Information"
                     : "Delivery Information"}
                 </h3>
@@ -324,7 +324,7 @@ export default function OrderDetailsModal({
                     <MapPin className="size-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    {order.deliveryAddress.type === "pickup" ? (
+                    {order.deliveryAddress?.type === "pickup" ? (
                       <>
                         <p className="font-semibold text-sm text-gray-900 mb-1.5">
                           Pickup — Customer will collect in store
@@ -336,11 +336,11 @@ export default function OrderDetailsModal({
                           Delivery Address
                         </p>
                         <p className="text-sm text-gray-700 leading-relaxed">
-                          {order.deliveryAddress.street}
+                          {order.deliveryAddress?.street}
                           <br />
-                          {order.deliveryAddress.city},{" "}
-                          {order.deliveryAddress.state}{" "}
-                          {order.deliveryAddress.zipCode}
+                          {order.deliveryAddress?.city},{" "}
+                          {order.deliveryAddress?.state}{" "}
+                          {order.deliveryAddress?.zipCode}
                         </p>
                       </>
                     )}
@@ -356,7 +356,7 @@ export default function OrderDetailsModal({
                       Contact Number
                     </p>
                     <p className="text-sm text-gray-700">
-                      {order.deliveryAddress.phone}
+                      {order.deliveryAddress?.phone}
                     </p>
                   </div>
                 </div>

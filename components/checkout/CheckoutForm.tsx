@@ -80,7 +80,7 @@ export default function CheckoutForm({
 
   const isPickup = orderType === "pickup";
   const appliedDeliveryFee = isPickup ? 0 : deliveryFee;
-  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
+  const subtotal = items.reduce((sum, item) => sum + (item.totalPrice ?? 0), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + appliedDeliveryFee + tax;
 
@@ -507,7 +507,7 @@ export default function CheckoutForm({
                         Qty: {item.quantity}
                       </p>
                       <p className="text-sm font-semibold font-playfair mt-1">
-                        ${item.totalPrice.toFixed(2)}
+                        ${(item.totalPrice ?? 0).toFixed(2)}
                       </p>
                     </div>
                   </div>
