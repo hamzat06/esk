@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendOrderConfirmationEmail } from "@/lib/notifications/email";
+import { sendPushToAdmins } from "@/lib/notifications/push";
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -90,6 +91,13 @@ export async function POST(request: NextRequest) {
           } catch (emailError) {
             console.error("Failed to send confirmation email:", emailError);
           }
+
+          // Notify admins of new order via push
+          sendPushToAdmins({
+            title: "New Order! 🛎️",
+            body: `Order #${order.order_number} from ${customerName} — $${Number(order.total).toFixed(2)}`,
+            url: "/admin/orders",
+          }).catch((e) => console.error("Admin push failed:", e));
         }
       } catch (error) {
         console.error("Error processing webhook:", error);

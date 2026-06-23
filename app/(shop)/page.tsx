@@ -1,14 +1,13 @@
-import BusinessHours from "@/components/BusinessHours";
+import BusinessHoursButton from "@/components/BusinessHoursButton";
 import ProductListClient from "@/components/products/ProductListClient";
 import ProductsGridSkeleton from "@/components/products/ProductsGridSkeleton";
 import SearchHeader from "@/components/products/SearchHeader";
 import ShopCarousel from "@/components/ShopCarousel";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { fetchCategories } from "@/lib/queries/categories";
 import { fetchProducts } from "@/lib/queries/products";
 import { createClient } from "@/lib/supabase/server";
-import { Clock3, Info, MapPin, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { Suspense } from "react";
 
 export default async function Page() {
@@ -123,20 +122,7 @@ export default async function Page() {
           {/* Actions Bar */}
           <div className="mt-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4">
             {/* Business Hours */}
-            <BusinessHours>
-              <Button
-                variant="ghost"
-                className="justify-start gap-2 px-4 py-3 h-auto border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-                size="lg"
-              >
-                <Clock3 className="size-5 text-gray-600" />
-                <Badge className="bg-green-50 text-green-700 font-semibold border border-green-200 px-2.5 py-0.5">
-                  Open
-                </Badge>
-                <span className="text-sm text-gray-700">Opens at 11:00 AM</span>
-                <Info className="size-4 text-gray-400 ml-auto" />
-              </Button>
-            </BusinessHours>
+            <BusinessHoursButton />
 
             {/* Search */}
             <div className="sm:ml-auto">

@@ -1,202 +1,91 @@
-// lib/notifications/push.ts
-import { createClient } from "@/lib/supabase/server";
+import webpush from "web-push";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-interface PushNotificationData {
+webpush.setVapidDetails(
+  "mailto:support@eddysylvakitchen.com",
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!,
+);
+
+interface PushPayload {
   title: string;
   body: string;
-  data?: Record<string, string>;
-  userId?: string;
-  icon?: string;
-  badge?: string;
-  image?: string;
+  url?: string;
 }
 
-export async function sendPushNotification(
-  notificationData: PushNotificationData,
-) {
-  const supabase = await createClient();
+type PushSub = { endpoint: string; p256dh: string; auth_key: string };
 
-  try {
-    // Get user's FCM tokens from database
-    let tokens: string[] = [];
-
-    if (notificationData.userId) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("fcm_tokens")
-        .eq("id", notificationData.userId)
-        .single();
-
-      if (profile && profile.fcm_tokens) {
-        tokens = Array.isArray(profile.fcm_tokens)
-          ? profile.fcm_tokens
-          : [profile.fcm_tokens];
+async function deliverPush(subs: PushSub[], payload: PushPayload) {
+  const dead: string[] = [];
+  await Promise.allSettled(
+    subs.map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_key } },
+          JSON.stringify(payload),
+        );
+      } catch (err) {
+        // 410 Gone means the subscription is no longer valid — clean it up
+        if ((err as { statusCode?: number }).statusCode === 410) dead.push(sub.endpoint);
       }
-    }
+    }),
+  );
 
-    if (tokens.length === 0) {
-      console.log("No FCM tokens found for user");
-      return { success: false, error: "No tokens found" };
-    }
-
-    // Send notification using Firebase Admin SDK
-    const response = await fetch(
-      "https://fcm.googleapis.com/v1/projects/YOUR_PROJECT_ID/messages:send",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await getAccessToken()}`,
-        },
-        body: JSON.stringify({
-          message: {
-            token: tokens[0], // Send to first token (can batch for multiple)
-            notification: {
-              title: notificationData.title,
-              body: notificationData.body,
-              image: notificationData.image,
-            },
-            data: notificationData.data || {},
-            webpush: {
-              fcm_options: {
-                link: notificationData.data?.url || "/orders",
-              },
-              notification: {
-                icon: notificationData.icon || "/icons/icon-192x192.png",
-                badge: notificationData.badge || "/icons/badge-72x72.png",
-                vibrate: [200, 100, 200],
-                tag: notificationData.data?.orderId || "order-update",
-                requireInteraction: true,
-              },
-            },
-          },
-        }),
-      },
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Failed to send push notification:", error);
-      return { success: false, error };
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error("Push notification error:", error);
-    return { success: false, error };
+  if (dead.length > 0) {
+    const supabaseAdmin = createAdminClient();
+    await supabaseAdmin.from("push_subscriptions").delete().in("endpoint", dead);
   }
 }
 
-// Helper to get Firebase access token
-async function getAccessToken() {
-  // This should use your Firebase service account
-  // For production, use @google-cloud/firestore-admin or similar
-  return process.env.FCM_SERVER_KEY || "";
+export async function sendPushToUser(userId: string, payload: PushPayload) {
+  const supabaseAdmin = createAdminClient();
+  const { data: subs } = await supabaseAdmin
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth_key")
+    .eq("user_id", userId);
+
+  if (!subs || subs.length === 0) return;
+  await deliverPush(subs, payload);
 }
 
-// Order-specific push notifications
-export async function sendOrderPushNotification(
+export async function sendPushToAdmins(payload: PushPayload) {
+  const supabaseAdmin = createAdminClient();
+  const { data: adminProfiles } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin");
+
+  if (!adminProfiles || adminProfiles.length === 0) return;
+
+  const adminIds = adminProfiles.map((p) => p.id);
+  const { data: subs } = await supabaseAdmin
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth_key")
+    .in("user_id", adminIds);
+
+  if (!subs || subs.length === 0) return;
+  await deliverPush(subs, payload);
+}
+
+const ORDER_STATUS_MESSAGES: Record<string, { title: string; body: string }> = {
+  confirmed: { title: "Order Confirmed! 🎉", body: "Your order #{n} has been confirmed." },
+  preparing: { title: "Preparing Your Order 👨‍🍳", body: "Our kitchen is now preparing order #{n}." },
+  ready: { title: "Order Ready! 📦", body: "Order #{n} is ready for pickup/delivery." },
+  out_for_delivery: { title: "On the Way 🚗", body: "Order #{n} is out for delivery!" },
+  delivered: { title: "Delivered! 🎉", body: "Order #{n} has arrived. Enjoy your meal!" },
+  cancelled: { title: "Order Cancelled", body: "Order #{n} has been cancelled." },
+};
+
+export async function sendOrderStatusPush(
   userId: string,
   orderNumber: string,
   status: string,
-  orderId: string,
 ) {
-  const statusMessages: Record<
-    string,
-    { title: string; body: string; icon: string }
-  > = {
-    confirmed: {
-      title: "Order Confirmed! 🎉",
-      body: `Your order #${orderNumber} has been confirmed and is being prepared.`,
-      icon: "✅",
-    },
-    preparing: {
-      title: "Order Being Prepared 👨‍🍳",
-      body: `Our chefs are preparing your order #${orderNumber}`,
-      icon: "🍳",
-    },
-    ready: {
-      title: "Order Ready! 📦",
-      body: `Your order #${orderNumber} is ready and will be delivered soon.`,
-      icon: "✅",
-    },
-    out_for_delivery: {
-      title: "Out for Delivery 🚗",
-      body: `Your order #${orderNumber} is on its way to you!`,
-      icon: "🚗",
-    },
-    delivered: {
-      title: "Order Delivered! 🎉",
-      body: `Your order #${orderNumber} has been delivered. Enjoy!`,
-      icon: "🎉",
-    },
-    cancelled: {
-      title: "Order Cancelled",
-      body: `Your order #${orderNumber} has been cancelled.`,
-      icon: "❌",
-    },
-  };
-
-  const message = statusMessages[status] || statusMessages.confirmed;
-
-  return sendPushNotification({
-    title: message.title,
-    body: message.body,
-    userId,
-    data: {
-      orderId,
-      orderNumber,
-      status,
-      url: `/orders`,
-    },
-    icon: "/icons/icon-192x192.png",
-    badge: "/icons/badge-72x72.png",
+  const msg = ORDER_STATUS_MESSAGES[status];
+  if (!msg) return;
+  await sendPushToUser(userId, {
+    title: msg.title,
+    body: msg.body.replace("{n}", orderNumber),
+    url: "/orders",
   });
-}
-
-// Send notification to all admins
-export async function sendAdminPushNotification(
-  title: string,
-  body: string,
-  data?: Record<string, string>,
-) {
-  const supabase = await createClient();
-
-  try {
-    // Get all admin FCM tokens
-    const { data: admins } = await supabase
-      .from("profiles")
-      .select("fcm_tokens")
-      .eq("role", "admin")
-      .not("fcm_tokens", "is", null);
-
-    if (!admins || admins.length === 0) {
-      return { success: false, error: "No admin tokens found" };
-    }
-
-    // Send to all admins
-    const promises = admins.map((admin) => {
-      const tokens = Array.isArray(admin.fcm_tokens)
-        ? admin.fcm_tokens
-        : [admin.fcm_tokens];
-
-      return Promise.all(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        tokens.map((token) =>
-          sendPushNotification({
-            title,
-            body,
-            data,
-          }),
-        ),
-      );
-    });
-
-    await Promise.all(promises);
-
-    return { success: true };
-  } catch (error) {
-    console.error("Admin push notification error:", error);
-    return { success: false, error };
-  }
 }

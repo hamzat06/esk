@@ -146,19 +146,34 @@ const Auth = () => {
         </SheetClose>
 
         {user && (
-          <SheetClose asChild>
-            <Button
-              asChild
-              size="lg"
-              className="rounded-full justify-start px-6 gap-3"
-              variant={isOrders ? "default" : "ghost"}
-            >
-              <Link href="/orders">
-                <ShoppingCart className="size-5" />
-                My Orders
-              </Link>
-            </Button>
-          </SheetClose>
+          <>
+            <SheetClose asChild>
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full justify-start px-6 gap-3"
+                variant={isOrders ? "default" : "ghost"}
+              >
+                <Link href="/orders">
+                  <ShoppingCart className="size-5" />
+                  My Orders
+                </Link>
+              </Button>
+            </SheetClose>
+            <SheetClose asChild>
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full justify-start px-6 gap-3"
+                variant={pathname === "/profile" ? "default" : "ghost"}
+              >
+                <Link href="/profile">
+                  <User className="size-5" />
+                  My Profile
+                </Link>
+              </Button>
+            </SheetClose>
+          </>
         )}
 
         {/* Admin Links - Filtered by Permissions */}

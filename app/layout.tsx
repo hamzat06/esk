@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/lib/providers";
 import GlobalToaster from "@/components/GlobalToaster";
+import PushSetup from "@/components/PushSetup";
 import { UserProfileProvider } from "@/lib/UseProfileProvider";
 
 const playfair = Playfair_Display({
@@ -33,6 +34,7 @@ export default function RootLayout({
           <UserProfileProvider>
             {children}
             <GlobalToaster />
+            <PushSetup />
           </UserProfileProvider>
         </Providers>
       </body>

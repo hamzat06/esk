@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "react-hot-toast";
-import { updateOrderStatus, OrderStatus } from "@/lib/queries/admin/orders";
+import { OrderStatus } from "@/lib/queries/admin/orders";
 import { format } from "date-fns";
 import {
   Eye,
@@ -87,12 +88,46 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          setOrders((prev) => [payload.new as Order, ...prev]);
+          toast.success("New order received!");
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders" },
+        (payload) => {
+          setOrders((prev) =>
+            prev.map((o) =>
+              o.id === payload.new.id ? { ...o, ...payload.new } : o,
+            ),
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const handleStatusChange = async (
     orderId: string,
     newStatus: OrderStatus,
   ) => {
     try {
-      await updateOrderStatus(orderId, newStatus);
+      const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
       setOrders((prev) =>
         prev.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order,
