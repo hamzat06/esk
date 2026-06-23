@@ -210,8 +210,8 @@ export default function OrderDetailsModal({
                   <div className="flex items-center gap-1.5">
                     <Package className="size-4" />
                     <span>
-                      {order.items.length}{" "}
-                      {order.items.length === 1 ? "item" : "items"}
+                      {(order.items ?? []).length}{" "}
+                      {(order.items ?? []).length === 1 ? "item" : "items"}
                     </span>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function OrderDetailsModal({
                 <h3 className="text-lg font-bold text-gray-900">Order Items</h3>
               </div>
               <div className="space-y-3">
-                {order.items.map((item) => (
+                {(order.items ?? []).map((item) => (
                   <div
                     key={item.id}
                     className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 transition-colors"
@@ -409,19 +409,19 @@ export default function OrderDetailsModal({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Subtotal</span>
                   <span className="font-semibold text-gray-900">
-                    ${order.subtotal.toFixed(2)}
+                    ${(order.subtotal ?? 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Delivery Fee</span>
                   <span className="font-semibold text-gray-900">
-                    ${order.deliveryFee.toFixed(2)}
+                    ${(order.deliveryFee ?? 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-700">Tax</span>
                   <span className="font-semibold text-gray-900">
-                    ${order.tax.toFixed(2)}
+                    ${(order.tax ?? 0).toFixed(2)}
                   </span>
                 </div>
                 <Separator className="bg-gray-200" />
@@ -430,7 +430,7 @@ export default function OrderDetailsModal({
                     Total Paid
                   </span>
                   <span className="text-3xl font-bold font-playfair text-primary">
-                    ${order.total.toFixed(2)}
+                    ${(order.total ?? 0).toFixed(2)}
                   </span>
                 </div>
               </div>

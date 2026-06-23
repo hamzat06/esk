@@ -113,8 +113,8 @@ export default function OrdersList({ orders }: OrdersListProps) {
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const matchesSearch =
-        order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.items?.some((item) =>
+        (order.orderNumber ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (order.items ?? []).some((item) =>
           item.title?.toLowerCase().includes(searchQuery.toLowerCase()),
         );
 
@@ -268,8 +268,8 @@ export default function OrdersList({ orders }: OrdersListProps) {
                         <div className="flex items-center gap-1.5">
                           <Package className="size-4" />
                           <span>
-                            {order.items.length}{" "}
-                            {order.items.length === 1 ? "item" : "items"}
+                            {(order.items ?? []).length}{" "}
+                            {(order.items ?? []).length === 1 ? "item" : "items"}
                           </span>
                         </div>
                       </div>
@@ -308,7 +308,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
                   {/* Items Preview */}
                   <div className="mb-4">
                     <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-2">
-                      {order.items.slice(0, 4).map((item) => (
+                      {(order.items ?? []).slice(0, 4).map((item) => (
                         <div key={item.id} className="shrink-0 group/item">
                           <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-gray-200 group-hover/item:border-primary transition-colors">
                             {item.image ? (
@@ -347,11 +347,11 @@ export default function OrdersList({ orders }: OrdersListProps) {
                           </p>
                         </div>
                       ))}
-                      {order.items.length > 4 && (
+                      {(order.items ?? []).length > 4 && (
                         <div className="shrink-0">
                           <div className="w-20 h-20 rounded-xl bg-linear-to-br from-gray-100 to-gray-50 border-2 border-gray-200 flex items-center justify-center">
                             <span className="text-sm font-bold text-gray-600">
-                              +{order.items.length - 4}
+                              +{(order.items ?? []).length - 4}
                             </span>
                           </div>
                           <p className="text-xs text-gray-600 mt-1.5 text-center">
@@ -367,7 +367,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
                     <div>
                       <p className="text-sm text-gray-600 mb-1">Order Total</p>
                       <p className="text-2xl font-bold font-playfair text-gray-900">
-                        ${order.total.toFixed(2)}
+                        ${(order.total ?? 0).toFixed(2)}
                       </p>
                     </div>
                     <Button

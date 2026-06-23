@@ -2,10 +2,12 @@ import { supabase } from "@/lib/supabase/client";
 import { sendOrderStatusEmail } from "@/lib/notifications/email";
 
 export type OrderStatus =
+  | "pending_payment"
   | "pending"
   | "confirmed"
   | "preparing"
   | "ready"
+  | "out_for_delivery"
   | "delivered"
   | "cancelled";
 
