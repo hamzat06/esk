@@ -35,9 +35,10 @@ const BusinessHours = (props: BusinessHoursProps) => {
   const [openingHours, setOpeningHours] = useState<OpeningHours | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get current day index (0 = Sunday, 1 = Monday, etc.)
+  // Convert JS getDay() (0=Sun) to Monday-first index (0=Mon … 6=Sun) to match the days array
   const getCurrentDayIndex = () => {
-    return new Date().getDay();
+    const jsDay = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    return jsDay === 0 ? 6 : jsDay - 1;
   };
 
   const currentDayIndex = getCurrentDayIndex();
