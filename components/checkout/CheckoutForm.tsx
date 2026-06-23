@@ -239,9 +239,9 @@ export default function CheckoutForm({
                 >
                   <Truck className="size-6" />
                   <span className="font-semibold text-sm">Delivery</span>
-                  <span className="text-xs">
-                    ${deliveryFee.toFixed(2)} fee
-                  </span>
+                  {deliveryEnabled && (
+                    <span className="text-xs">${deliveryFee.toFixed(2)} fee</span>
+                  )}
                 </button>
 
                 <button
