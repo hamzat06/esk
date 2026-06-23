@@ -462,12 +462,12 @@ export default function CustomersManager({
                     <div className="flex items-start gap-1.5 text-sm text-gray-600">
                       <MapPin className="size-3.5 mt-0.5 shrink-0" />
                       <span>
-                        {customer.default_address.street &&
+                        {customer.default_address?.street &&
                           `${customer.default_address.street}, `}
-                        {customer.default_address.city &&
+                        {customer.default_address?.city &&
                           `${customer.default_address.city}, `}
-                        {customer.default_address.state}{" "}
-                        {customer.default_address.zipCode}
+                        {customer.default_address?.state}{" "}
+                        {customer.default_address?.zipCode}
                       </span>
                     </div>
                   </div>
@@ -521,13 +521,13 @@ export default function CustomersManager({
                   <div className="flex items-start gap-2 text-sm text-gray-600">
                     <MapPin className="size-4 mt-0.5 shrink-0" />
                     <div>
-                      {selectedCustomer.default_address.street && (
+                      {selectedCustomer.default_address?.street && (
                         <p>{selectedCustomer.default_address.street}</p>
                       )}
                       <p>
-                        {selectedCustomer.default_address.city},{" "}
-                        {selectedCustomer.default_address.state}{" "}
-                        {selectedCustomer.default_address.zipCode}
+                        {selectedCustomer.default_address?.city},{" "}
+                        {selectedCustomer.default_address?.state}{" "}
+                        {selectedCustomer.default_address?.zipCode}
                       </p>
                     </div>
                   </div>

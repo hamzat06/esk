@@ -291,7 +291,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
                         ${Number(order.total).toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-600">
-                        {order.items.length} items
+                        {order.items?.length ?? 0} items
                       </p>
                     </div>
 

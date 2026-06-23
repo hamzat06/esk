@@ -76,7 +76,7 @@ export default function ProductDialog({
         description: product.description,
         image: product.image || null,
         amount: product.amount.toString(),
-        category_id: product.category.id,
+        category_id: product.category?.id || "",
         in_stock: product.in_stock,
       });
       // Parse options from product

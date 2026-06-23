@@ -273,7 +273,7 @@ export default function ProductsManager({
                       {product.description}
                     </p>
                     <p className="text-sm text-primary mt-1">
-                      {product.category.title}
+                      {product.category?.title || "Uncategorized"}
                     </p>
                   </div>
 
