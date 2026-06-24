@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Dialog, DialogContent } from "../ui/dialog";
 import Image from "next/image";
 import { Button } from "../ui/button";
@@ -97,7 +97,7 @@ const ProductDetailsModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="p-0 gap-0 overflow-y-auto top-auto bottom-0 left-0 right-0 max-w-full translate-x-0 translate-y-0 rounded-none rounded-t-2xl max-h-[92vh] sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-2xl sm:max-h-[90vh]">
+      <DialogContent className="p-0 gap-0 overflow-y-auto top-auto bottom-0 left-0 right-0 max-w-full translate-x-0 translate-y-0 rounded-none rounded-t-2xl max-h-[85vh] sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:rounded-2xl sm:max-h-[90vh]">
         {/* Product Image */}
         <div className="relative w-full h-72 sm:h-80">
           {product.image ? (
