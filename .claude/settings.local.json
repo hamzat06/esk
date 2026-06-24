@@ -18,7 +18,8 @@
       "Bash(npm i *)",
       "Bash(mkdir -p /Users/techdadi/projects/react/esk/app/api/notifications/subscribe /Users/techdadi/projects/react/esk/app/api/notifications/unsubscribe /Users/techdadi/projects/react/esk/app/api/admin/orders/\\\\[id\\\\]/status)",
       "Bash(npx eslint *)",
-      "Bash(node_modules/.bin/next lint *)"
+      "Bash(node_modules/.bin/next lint *)",
+      "Bash(npx shadcn@latest add table --yes)"
     ],
     "additionalDirectories": [
       "/Users/techdadi/projects/react/esk/app/api/admin/orders/[id]"

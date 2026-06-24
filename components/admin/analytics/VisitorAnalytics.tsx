@@ -145,7 +145,7 @@ export default function VisitorAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Page Views</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {totalPageViews.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -164,7 +164,7 @@ export default function VisitorAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Unique Visitors</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {uniqueVisitors.toLocaleString()}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -185,7 +185,7 @@ export default function VisitorAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Avg. Session</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {avgSessionDuration.toFixed(1)}
                   <span className="text-sm font-normal ml-1">min</span>
                 </p>
@@ -203,7 +203,7 @@ export default function VisitorAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Bounce Rate</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {uniqueVisitors > 0
                     ? `${((Object.values(ipSessions).filter((s) => s.length === 1).length / uniqueVisitors) * 100).toFixed(1)}%`
                     : "0%"}

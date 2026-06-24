@@ -93,7 +93,7 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-y-hidden! p-0 gap-0 flex flex-col">
 
         {/* Header */}
         <div className={`${st.bg} border-b px-4 sm:px-6 pt-5 pb-4 shrink-0`}>

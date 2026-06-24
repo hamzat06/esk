@@ -187,7 +187,7 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     </TableCell>
 
                     <TableCell>
-                      <p className="font-bold font-playfair text-primary">
+                      <p className="font-bold text-primary">
                         ${Number(order.total).toFixed(2)}
                       </p>
                     </TableCell>

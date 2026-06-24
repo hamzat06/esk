@@ -157,7 +157,7 @@ export default function ProductsManager({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Total Products</p>
-                  <p className="text-2xl font-bold font-playfair">
+                  <p className="text-2xl font-bold">
                     {totalProducts}
                   </p>
                 </div>
@@ -173,7 +173,7 @@ export default function ProductsManager({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">In Stock</p>
-                  <p className="text-2xl font-bold font-playfair">
+                  <p className="text-2xl font-bold">
                     {inStockProducts}
                   </p>
                 </div>
@@ -189,7 +189,7 @@ export default function ProductsManager({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Out of Stock</p>
-                  <p className="text-2xl font-bold font-playfair">
+                  <p className="text-2xl font-bold">
                     {outOfStockProducts}
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export default function ProductsManager({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Average Price</p>
-                  <p className="text-2xl font-bold font-playfair">
+                  <p className="text-2xl font-bold">
                     ${averagePrice.toFixed(2)}
                   </p>
                 </div>
@@ -278,7 +278,7 @@ export default function ProductsManager({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold font-playfair text-primary">
+                    <span className="text-2xl font-bold text-primary">
                       ${product.amount.toFixed(2)}
                     </span>
                     <div className="flex items-center gap-2">

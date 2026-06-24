@@ -53,21 +53,21 @@ export default async function CheckoutSuccessPage({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-xl font-bold font-playfair">
+              <CardTitle className="text-xl font-bold">
                 Order Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center pb-3 border-b">
                 <span className="text-gray-600">Order Number</span>
-                <span className="font-bold font-playfair">
+                <span className="font-bold">
                   #{order.order_number}
                 </span>
               </div>
 
               <div className="flex justify-between items-center pb-3 border-b">
                 <span className="text-gray-600">Total Amount</span>
-                <span className="text-2xl font-bold font-playfair text-primary">
+                <span className="text-2xl font-bold text-primary">
                   ${Number(order.total).toFixed(2)}
                 </span>
               </div>

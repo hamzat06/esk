@@ -399,7 +399,7 @@ export default function AnalyticsManager({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
-                    <p className="text-2xl font-bold font-playfair">
+                    <p className="text-2xl font-bold">
                       ${totalRevenue.toFixed(2)}
                     </p>
                     {dateRange !== "all" && (
@@ -423,7 +423,7 @@ export default function AnalyticsManager({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Total Orders</p>
-                    <p className="text-2xl font-bold font-playfair">
+                    <p className="text-2xl font-bold">
                       {totalOrders}
                     </p>
                     {dateRange !== "all" && (
@@ -447,7 +447,7 @@ export default function AnalyticsManager({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Customers</p>
-                    <p className="text-2xl font-bold font-playfair">
+                    <p className="text-2xl font-bold">
                       {totalCustomers}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -466,7 +466,7 @@ export default function AnalyticsManager({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500 mb-1">Products</p>
-                    <p className="text-2xl font-bold font-playfair">
+                    <p className="text-2xl font-bold">
                       {totalProducts}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">In catalog</p>

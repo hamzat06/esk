@@ -306,7 +306,7 @@ export default function CustomersManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Customers</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {customers.length}
                 </p>
               </div>
@@ -322,7 +322,7 @@ export default function CustomersManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Orders</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {customers.reduce((sum, c) => sum + (c.order_count || 0), 0)}
                 </p>
               </div>
@@ -338,7 +338,7 @@ export default function CustomersManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Revenue</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   $
                   {customers
                     .reduce((sum, c) => sum + (c.total_spent || 0), 0)

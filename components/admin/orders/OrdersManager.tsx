@@ -202,7 +202,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Orders</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {stats.total}
                 </p>
               </div>
@@ -218,7 +218,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Total Revenue</p>
-                <p className="text-2xl font-bold font-playfair text-green-600">
+                <p className="text-2xl font-bold text-green-600">
                   ${stats.totalRevenue.toFixed(2)}
                 </p>
               </div>
@@ -234,7 +234,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Pending</p>
-                <p className="text-2xl font-bold font-playfair text-yellow-600">
+                <p className="text-2xl font-bold text-yellow-600">
                   {stats.pending}
                 </p>
               </div>
@@ -250,7 +250,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 mb-1">Completed</p>
-                <p className="text-2xl font-bold font-playfair text-gray-600">
+                <p className="text-2xl font-bold text-gray-600">
                   {stats.delivered}
                 </p>
               </div>
@@ -312,7 +312,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
                     <div>
                       <p className="text-sm text-gray-500">Order #</p>
                       <div className="flex items-center gap-2">
-                        <p className="font-bold font-playfair">
+                        <p className="font-bold">
                           {order.order_number}
                         </p>
                         {isNew && (
@@ -340,7 +340,7 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
                     {/* Total */}
                     <div>
                       <p className="text-sm text-gray-500">Total</p>
-                      <p className="text-2xl font-bold font-playfair text-primary">
+                      <p className="text-2xl font-bold text-primary">
                         ${Number(order.total).toFixed(2)}
                       </p>
                       <p className="text-xs text-gray-600">

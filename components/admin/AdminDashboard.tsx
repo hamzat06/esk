@@ -79,7 +79,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   {stats.totalOrders}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">All time orders</p>
@@ -101,7 +101,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   ${stats.totalRevenue.toLocaleString()}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Last 100 orders</p>
@@ -123,7 +123,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   {stats.totalCustomers}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Registered users</p>
@@ -145,7 +145,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   {stats.todayOrders}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">Orders placed today</p>
@@ -167,7 +167,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   {stats.activeOrders}
                 </p>
                 <p className="text-sm text-amber-600 mt-1">In progress</p>
@@ -189,7 +189,7 @@ export default function AdminDashboard({
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold font-playfair">
+                <p className="text-3xl font-bold">
                   {stats.pendingOrders}
                 </p>
                 <p className="text-sm text-red-600 mt-1">Needs attention</p>

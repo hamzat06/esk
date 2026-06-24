@@ -147,7 +147,7 @@ const ProductDetailsModal = ({
             <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
               {product.description}
             </p>
-            <p className="text-3xl sm:text-4xl font-bold font-playfair mt-4">
+            <p className="text-3xl sm:text-4xl font-bold mt-4">
               ${pricing.unitPrice.toFixed(2)}
             </p>
           </div>
@@ -240,7 +240,7 @@ const ProductDetailsModal = ({
 
               <div className="text-sm text-gray-600">
                 <span className="font-medium">Total: </span>
-                <span className="text-xl font-bold font-playfair text-gray-900">
+                <span className="text-xl font-bold text-gray-900">
                   ${pricing.totalPrice.toFixed(2)}
                 </span>
               </div>

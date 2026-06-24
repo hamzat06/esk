@@ -75,11 +75,11 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-500">Total items</p>
-            <p className="text-2xl font-semibold font-playfair">{itemCount}</p>
+            <p className="text-2xl font-semibold">{itemCount}</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">Subtotal</p>
-            <p className="text-2xl font-semibold font-playfair">
+            <p className="text-2xl font-semibold">
               ${subtotal.toFixed(2)}
             </p>
           </div>
@@ -158,7 +158,7 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
 
                 {/* Price and Quantity */}
                 <div className="flex items-center justify-between mt-3">
-                  <p className="text-xl sm:text-2xl font-semibold font-playfair">
+                  <p className="text-xl sm:text-2xl font-semibold">
                     ${(item.totalPrice ?? 0).toFixed(2)}
                   </p>
 
@@ -216,7 +216,7 @@ const Cart = ({ onClose }: { onClose: PureFunc }) => {
 
         <div className="flex justify-between items-center">
           <span className="text-base font-semibold">Total</span>
-          <span className="text-2xl font-semibold font-playfair">
+          <span className="text-2xl font-semibold">
             ${subtotal.toFixed(2)}
           </span>
         </div>

@@ -211,7 +211,7 @@ export default function CateringBookingsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Bookings</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {bookings.length}
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function CateringBookingsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Pending Review</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {statusStats.pending}
                 </p>
               </div>
@@ -243,7 +243,7 @@ export default function CateringBookingsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Confirmed</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {statusStats.confirmed}
                 </p>
               </div>

@@ -78,13 +78,13 @@ const CateringServiceModal = (props: CateringModalProps) => {
             {/* Features */}
             <div className="grid grid-cols-2 gap-3 py-4">
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold font-playfair text-primary mb-1">
+                <p className="text-2xl font-bold text-primary mb-1">
                   50+
                 </p>
                 <p className="text-sm text-gray-600">Events Catered</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 text-center">
-                <p className="text-2xl font-bold font-playfair text-primary mb-1">
+                <p className="text-2xl font-bold text-primary mb-1">
                   500+
                 </p>
                 <p className="text-sm text-gray-600">Happy Guests</p>

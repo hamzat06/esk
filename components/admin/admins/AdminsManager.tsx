@@ -256,7 +256,7 @@ export default function AdminsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Admins</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {admins.length}
                 </p>
               </div>
@@ -272,7 +272,7 @@ export default function AdminsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Super Admins</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {admins.filter((a) => checkIsSuperAdmin(a)).length}
                 </p>
               </div>
@@ -288,7 +288,7 @@ export default function AdminsManager({
               </div>
               <div>
                 <p className="text-sm text-gray-500">Limited Admins</p>
-                <p className="text-2xl font-bold font-playfair">
+                <p className="text-2xl font-bold">
                   {admins.filter((a) => !checkIsSuperAdmin(a)).length}
                 </p>
               </div>

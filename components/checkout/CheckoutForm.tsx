@@ -559,7 +559,7 @@ export default function CheckoutForm({
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
                       <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
-                      <p className="text-sm font-semibold font-playfair mt-1">
+                      <p className="text-sm font-semibold mt-1">
                         ${(item.totalPrice ?? 0).toFixed(2)}
                       </p>
                     </div>
@@ -589,7 +589,7 @@ export default function CheckoutForm({
 
                 <div className="flex justify-between items-center pt-2">
                   <span className="font-bold text-base">Total</span>
-                  <span className="text-2xl font-bold font-playfair text-primary">
+                  <span className="text-2xl font-bold text-primary">
                     ${total.toFixed(2)}
                   </span>
                 </div>

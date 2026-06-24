@@ -84,7 +84,7 @@ const ProductCard = ({
           {highlightText(product.description ?? "", searchQuery)}
         </p>
 
-        <span className="text-xl sm:text-3xl font-semibold font-playfair">
+        <span className="text-xl sm:text-3xl font-semibold">
           ${Number(product.amount ?? 0).toFixed(2)}
         </span>
       </div>
