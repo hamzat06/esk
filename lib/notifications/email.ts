@@ -1,4 +1,3 @@
-// lib/notifications/email.ts
 interface OrderEmailData {
   orderId: string;
   orderNumber: string;
@@ -24,8 +23,53 @@ interface OrderEmailData {
   status: string;
 }
 
+const FROM = "EddySylva Kitchen <orders@eddysylvakitchen.us>";
+const SUPPORT_EMAIL = "info.eddysylvakitchen@gmail.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.eddysylvakitchen.us";
+
+const FOOTER = `
+  <tr>
+    <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+      <p style="color: #9ca3af; margin: 0 0 4px; font-size: 12px;">
+        © ${new Date().getFullYear()} EddySylva Kitchen. All rights reserved.
+      </p>
+      <p style="color: #9ca3af; margin: 0; font-size: 12px;">
+        255 South 60th Street, Philadelphia, PA 19139
+      </p>
+    </td>
+  </tr>
+`;
+
+async function sendEmail(to: string, subject: string, html: string) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY not set — email not sent");
+    return { success: false, error: "No email service configured" };
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({ from: FROM, to, subject, html }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Resend error:", err);
+      return { success: false, error: err };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Email error:", error);
+    return { success: false, error };
+  }
+}
+
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
-  // Format items for email
   const itemsHtml = data.items
     .map(
       (item) => `
@@ -44,7 +88,23 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
     )
     .join("");
 
-  const emailHtml = `
+  const addressHtml =
+    data.deliveryAddress.type === "pickup"
+      ? `<p style="margin: 0; color: #4b5563;">Pickup — please collect your order in store.</p>`
+      : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">
+          ${data.deliveryAddress.street}<br>
+          ${data.deliveryAddress.city}, ${data.deliveryAddress.state} ${data.deliveryAddress.zipCode}
+        </p>`;
+
+  const deliveryFeeRow =
+    data.deliveryFee > 0
+      ? `<tr>
+          <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Delivery Fee:</td>
+          <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.deliveryFee.toFixed(2)}</td>
+        </tr>`
+      : "";
+
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -56,17 +116,14 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-          <!-- Header -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
           <tr>
             <td style="background-color: #A62828; padding: 40px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: 'Playfair Display', Georgia, serif;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">
                 EddySylva Kitchen
               </h1>
             </td>
           </tr>
-          
-          <!-- Content -->
           <tr>
             <td style="padding: 40px;">
               <div style="text-align: center; margin-bottom: 30px;">
@@ -76,26 +133,23 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                   </svg>
                 </div>
               </div>
-              
-              <h2 style="color: #1f2937; margin: 0 0 10px; font-size: 24px; font-weight: 600; text-align: center;">
+
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600; text-align: center;">
                 Order Confirmed! 🎉
               </h2>
               <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">
                 Order #${data.orderNumber}
               </p>
-              
-              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px;">
-                Hi ${data.customerName},
-              </p>
+
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 10px;">Hi ${data.customerName},</p>
               <p style="color: #4b5563; line-height: 1.6; margin: 0 0 30px;">
-                Thank you for your order! We've received it and our kitchen is getting started. You'll receive another email when your order is ready for delivery.
+                Thank you for your order! We've received it and our kitchen is getting started.
+                You'll receive another email when your order status changes.
               </p>
-              
-              <!-- Order Details -->
-              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; margin: 30px 0; border-radius: 8px;">
-                <h3 style="margin: 0 0 15px; font-size: 16px; font-weight: 600; color: #1f2937;">
-                  Order Details
-                </h3>
+
+              <!-- Order Items -->
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; margin: 0 0 30px; border-radius: 8px;">
+                <h3 style="margin: 0 0 15px; font-size: 16px; font-weight: 600; color: #1f2937;">Order Details</h3>
                 <table width="100%" cellpadding="0" cellspacing="0">
                   <thead>
                     <tr style="background-color: #f3f4f6;">
@@ -104,18 +158,13 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                       <th style="padding: 12px; text-align: right; font-size: 14px; color: #6b7280;">Price</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    ${itemsHtml}
-                  </tbody>
+                  <tbody>${itemsHtml}</tbody>
                   <tfoot>
                     <tr>
                       <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Subtotal:</td>
                       <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.subtotal.toFixed(2)}</td>
                     </tr>
-                    ${data.deliveryFee > 0 ? `<tr>
-                      <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Delivery Fee:</td>
-                      <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.deliveryFee.toFixed(2)}</td>
-                    </tr>` : ""}
+                    ${deliveryFeeRow}
                     <tr>
                       <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Tax:</td>
                       <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.tax.toFixed(2)}</td>
@@ -127,92 +176,43 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                   </tfoot>
                 </table>
               </div>
-              
-              <!-- Delivery / Pickup -->
-              <div style="margin: 30px 0;">
+
+              <!-- Address -->
+              <div style="margin: 0 0 30px;">
                 <h3 style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #1f2937;">
                   ${data.deliveryAddress.type === "pickup" ? "Pickup" : "Delivery Address"}
                 </h3>
-                ${data.deliveryAddress.type === "pickup"
-                  ? `<p style="margin: 0; color: #4b5563;">Pickup — please collect your order in store.</p>`
-                  : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">
-                      ${data.deliveryAddress.street}<br>
-                      ${data.deliveryAddress.city}, ${data.deliveryAddress.state} ${data.deliveryAddress.zipCode}
-                    </p>`
-                }
+                ${addressHtml}
               </div>
-              
-              <!-- Track Order Button -->
+
+              <!-- CTA -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${process.env.NEXT_PUBLIC_SITE_URL}/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    <a href="${SITE_URL}/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                       Track Your Order
                     </a>
                   </td>
                 </tr>
               </table>
-              
-              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0;">
-                Questions about your order? Reply to this email or contact us at <a href="mailto:orders@eddysylvakitchen.us" style="color: #A62828;">orders@eddysylvakitchen.us</a>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                Questions? Reply to this email or contact us at
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: #A62828;">${SUPPORT_EMAIL}</a>
               </p>
             </td>
           </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © ${new Date().getFullYear()} EddySylva Kitchen. All rights reserved.<br>
-                255 South 60th Street, Philadelphia, PA 19139
-              </p>
-            </td>
-          </tr>
+          ${FOOTER}
         </table>
       </td>
     </tr>
   </table>
 </body>
-</html>
-  `;
+</html>`;
 
-  // Send email using Supabase Edge Function or external service
-  // Option 1: Using Resend (recommended)
-  if (process.env.RESEND_API_KEY) {
-    try {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "EddySylva Kitchen <orders@eddysylvakitchen.us>",
-          to: data.customerEmail,
-          subject: `Order Confirmation - #${data.orderNumber}`,
-          html: emailHtml,
-        }),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to send email:", await response.text());
-        return { success: false, error: "Failed to send email" };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error("Email error:", error);
-      return { success: false, error };
-    }
-  }
-
-  console.warn(
-    "No email service configured. Please set RESEND_API_KEY or SENDGRID_API_KEY",
-  );
-  return { success: false, error: "No email service configured" };
+  return sendEmail(data.customerEmail, `Order Confirmation - #${data.orderNumber}`, html);
 }
 
-// Send order status update email
 export async function sendOrderStatusEmail(
   _orderId: string,
   newStatus: string,
@@ -220,10 +220,7 @@ export async function sendOrderStatusEmail(
   customerName: string,
   orderNumber: string,
 ) {
-  const statusMessages: Record<
-    string,
-    { title: string; message: string; color: string }
-  > = {
+  const statusMessages: Record<string, { title: string; message: string; color: string }> = {
     confirmed: {
       title: "Order Confirmed",
       message: "Your order has been confirmed and our kitchen is preparing it!",
@@ -246,34 +243,35 @@ export async function sendOrderStatusEmail(
     },
     delivered: {
       title: "Order Delivered",
-      message: "Your order has been delivered. Enjoy your meal!",
+      message: "Your order has been delivered. Enjoy your meal! 🍽️",
       color: "#10b981",
     },
     cancelled: {
       title: "Order Cancelled",
-      message:
-        "Your order has been cancelled. If you have questions, please contact us.",
+      message: "Your order has been cancelled. If you have any questions, please contact us.",
       color: "#ef4444",
     },
   };
 
-  const statusInfo = statusMessages[newStatus] || statusMessages.confirmed;
+  const statusInfo = statusMessages[newStatus];
+  if (!statusInfo) return { success: false, error: "Unknown status" };
 
-  const emailHtml = `
+  const html = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Update</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
           <tr>
             <td style="background-color: #A62828; padding: 40px; text-align: center;">
-              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">
                 EddySylva Kitchen
               </h1>
             </td>
@@ -287,87 +285,38 @@ export async function sendOrderStatusEmail(
                   </svg>
                 </div>
               </div>
-              
-              <h2 style="color: #1f2937; margin: 0 0 10px; text-align: center;">
+
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600; text-align: center;">
                 ${statusInfo.title}
               </h2>
-              <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">
-                Order #${orderNumber}
-              </p>
-              
-              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px;">
-                Hi ${customerName},
-              </p>
-              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 30px;">
-                ${statusInfo.message}
-              </p>
-              
+              <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">Order #${orderNumber}</p>
+
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 10px;">Hi ${customerName},</p>
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 30px;">${statusInfo.message}</p>
+
               <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
                 <tr>
                   <td align="center">
-                    <a href="${process.env.NEXT_PUBLIC_SITE_URL}/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600;">
+                    <a href="${SITE_URL}/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                       View Order Status
                     </a>
                   </td>
                 </tr>
               </table>
-            </td>
-          </tr>
-          <tr>
-            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
-              <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © ${new Date().getFullYear()} EddySylva Kitchen
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                Questions? Contact us at
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: #A62828;">${SUPPORT_EMAIL}</a>
               </p>
             </td>
           </tr>
+          ${FOOTER}
         </table>
       </td>
     </tr>
   </table>
 </body>
-</html>
-  `;
+</html>`;
 
-  // Send using configured service
-  if (process.env.RESEND_API_KEY) {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: "EddySylva Kitchen <orders@eddysylvakitchen.com>",
-        to: customerEmail,
-        subject: `${statusInfo.title} - Order #${orderNumber}`,
-        html: emailHtml,
-      }),
-    });
-  } else if (process.env.SENDGRID_API_KEY) {
-    await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
-      },
-      body: JSON.stringify({
-        personalizations: [
-          {
-            to: [{ email: customerEmail, name: customerName }],
-          },
-        ],
-        from: {
-          email: "orders@eddysylvakitchen.us",
-          name: "EddySylva Kitchen",
-        },
-        subject: `${statusInfo.title} - Order #${orderNumber}`,
-        content: [
-          {
-            type: "text/html",
-            value: emailHtml,
-          },
-        ],
-      }),
-    });
-  }
+  return sendEmail(customerEmail, `${statusInfo.title} - Order #${orderNumber}`, html);
 }
