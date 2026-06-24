@@ -24,10 +24,21 @@ interface ProductDetailsModalProps {
   onClose?: () => void;
 }
 
-type SelectedOptions = Record<string, { label: string; price: number }>;
+type SelectedOptions = Record<
+  string,
+  {
+    label: string;
+    price: number;
+  }
+>;
 
-const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProps) => {
+const ProductDetailsModal = ({
+  product,
+  open,
+  onClose,
+}: ProductDetailsModalProps) => {
   const addToCart = useCartStore((s) => s.addItem);
+
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
 
@@ -38,29 +49,37 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
 
   const pricing = useMemo(() => {
     if (!product) return { unitPrice: 0, totalPrice: 0 };
+
     return calculateCartPricing(product.amount, selectedOptions, quantity);
   }, [product, selectedOptions, quantity]);
 
   function handleOptionChange(groupKey: string, option: ProductOptionItem) {
     setSelectedOptions((prev) => ({
       ...prev,
-      [groupKey]: { label: option.label, price: option.price },
+      [groupKey]: {
+        label: option.label,
+        price: option.price,
+      },
     }));
   }
 
   function handleAddToCart() {
     if (!product) return;
+
     const cartItem: CartItem = {
       id: uuidv4(),
       productId: product.id,
       title: product.title,
       image: product.image,
+
       quantity,
       basePrice: product.amount,
       options: selectedOptions,
+
       unitPrice: pricing.unitPrice,
       totalPrice: pricing.totalPrice,
     };
+
     addToCart(cartItem);
     setQuantity(1);
     toast.success("Item added to cart!");
@@ -78,15 +97,17 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0 gap-0">
-
-        {/* Sticky image header */}
-        <div className="sticky top-0 z-10 w-full h-56 sm:h-64 shrink-0 overflow-hidden">
+      <DialogContent sheet className="p-0 gap-0">
+        {/* Product Image */}
+        <div className="relative w-full h-72 sm:h-80">
           {product.image ? (
             isVideoAsset(product.image) ? (
               <video
                 src={getVideoUrl(getPublicId(product.image))}
-                autoPlay loop muted playsInline
+                autoPlay
+                loop
+                muted
+                playsInline
                 className={`w-full h-full object-cover ${!product.in_stock && "grayscale"}`}
               />
             ) : (
@@ -102,22 +123,23 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
             <Image
               src="/assets/mustard-back.jpg"
               alt="Mockup"
-              className={`object-cover ${!product.in_stock && "grayscale"}`}
+              className={`object-cover size-auto ${
+                !product.in_stock && "grayscale"
+              }`}
               fill
             />
           )}
 
-          {!product.in_stock && (
+          {!product?.in_stock && (
             <Badge className="absolute right-4 top-4 bg-white text-red-500 font-semibold px-3 py-1.5 text-sm shadow-md">
               Out of stock
             </Badge>
           )}
         </div>
 
-        {/* Scrollable content */}
+        {/* Content */}
         <div className="p-6 space-y-6">
-
-          {/* Title, description & base price */}
+          {/* Title & Description */}
           <div>
             <h3 className="text-2xl sm:text-3xl font-bold font-playfair mb-2">
               {product.title}
@@ -134,16 +156,24 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
           {product.options?.groups?.map((group) => (
             <div key={group.key} className="space-y-3">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-base sm:text-lg">{group.label}</p>
+                <p className="font-semibold text-base sm:text-lg">
+                  {group.label}
+                </p>
                 {group.required && (
-                  <Badge variant="outline" className="text-xs text-red-600 border-red-200 bg-red-50">
+                  <Badge
+                    variant="outline"
+                    className="text-xs text-red-600 border-red-200 bg-red-50"
+                  >
                     Required
                   </Badge>
                 )}
               </div>
+
               <RadioGroup className="flex flex-wrap gap-2">
                 {group.options.map((option) => {
-                  const isSelected = selectedOptions[group.key]?.label === option.label;
+                  const isSelected =
+                    selectedOptions[group.key]?.label === option.label;
+
                   return (
                     <div key={option.label}>
                       <RadioGroupItem
@@ -152,6 +182,7 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
                         className="peer sr-only"
                         onClick={() => handleOptionChange(group.key, option)}
                       />
+
                       <Label
                         htmlFor={`${group.key}-${option.label}`}
                         className={cn(
@@ -163,7 +194,12 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
                       >
                         {option.label}
                         {option.price > 0 && (
-                          <span className={cn("ml-1", isSelected ? "text-white/90" : "text-gray-500")}>
+                          <span
+                            className={cn(
+                              "ml-1",
+                              isSelected ? "text-white/90" : "text-gray-500",
+                            )}
+                          >
                             (+${option.price})
                           </span>
                         )}
@@ -175,7 +211,7 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
             </div>
           ))}
 
-          {/* Quantity */}
+          {/* Quantity Selector */}
           <div className="space-y-3">
             <p className="font-semibold text-base sm:text-lg">Quantity</p>
             <div className="flex items-center gap-4">
@@ -188,7 +224,11 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
                 >
                   <Minus className="size-5" />
                 </button>
-                <span className="text-lg font-semibold min-w-[2rem] text-center">{quantity}</span>
+
+                <span className="text-lg font-semibold min-w-[2rem] text-center">
+                  {quantity}
+                </span>
+
                 <button
                   onClick={() => setQuantity(quantity + 1)}
                   className="hover:bg-white rounded-lg p-2 transition-colors"
@@ -197,22 +237,17 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
                   <Plus className="size-5" />
                 </button>
               </div>
+
               <div className="text-sm text-gray-600">
                 <span className="font-medium">Total: </span>
-                <span className="text-xl font-bold text-gray-900">${pricing.totalPrice.toFixed(2)}</span>
+                <span className="text-xl font-bold text-gray-900">
+                  ${pricing.totalPrice.toFixed(2)}
+                </span>
               </div>
             </div>
           </div>
 
-        </div>
-
-        {/* Sticky footer — Add to Cart */}
-        <div className="sticky bottom-0 z-10 px-6 py-4 bg-white border-t border-gray-100">
-          {!hasRequiredOptions && (
-            <p className="text-sm text-red-600 text-center mb-3">
-              Please select all required options
-            </p>
-          )}
+          {/* Add to Cart Button */}
           <Button
             size="lg"
             className="w-full text-base font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
@@ -222,8 +257,13 @@ const ProductDetailsModal = ({ product, open, onClose }: ProductDetailsModalProp
             <ShoppingCart className="mr-2 size-5" />
             Add to cart • ${pricing.totalPrice.toFixed(2)}
           </Button>
-        </div>
 
+          {!hasRequiredOptions && (
+            <p className="text-sm text-red-600 text-center">
+              Please select all required options
+            </p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

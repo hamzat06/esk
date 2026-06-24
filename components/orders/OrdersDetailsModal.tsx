@@ -78,14 +78,17 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
   return (
     <Dialog open={open} onOpenChange={onClose}>
       {/*
-        DialogContent base: max-h-[95vh] overflow-y-auto
-        We keep that as-is and use sticky positioning for header/footer.
-        The body flows naturally in between — no flex fighting needed.
+        Inline style forces flex-col + overflow-hidden on the dialog box,
+        overriding the base grid + overflow-y-auto which breaks sticky on iOS Safari.
+        The body div then owns the scroll with flex-1 min-h-0 overflow-y-auto.
       */}
-      <DialogContent className="sm:max-w-2xl p-0 gap-0">
+      <DialogContent
+        className="sm:max-w-2xl p-0 gap-0"
+        style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
+      >
 
-        {/* ── Sticky header ── */}
-        <div className={`sticky top-0 z-10 ${st.bg} border-b px-4 sm:px-6 pt-5 pb-4`}>
+        {/* ── Fixed header ── */}
+        <div className={`shrink-0 ${st.bg} border-b px-4 sm:px-6 pt-5 pb-4`}>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -117,7 +120,7 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
         </div>
 
         {/* ── Scrollable body ── */}
-        <div className="p-4 sm:p-6 space-y-5">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 space-y-5">
 
           {/* Items */}
           <div>
@@ -237,8 +240,8 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
 
         </div>
 
-        {/* ── Sticky footer ── */}
-        <div className="sticky bottom-0 z-10 px-4 sm:px-6 py-4 bg-white border-t border-gray-200">
+        {/* ── Fixed footer ── */}
+        <div className="shrink-0 px-4 sm:px-6 py-4 bg-white border-t border-gray-200">
           <div className="flex flex-col sm:flex-row gap-2">
             {order.status === "delivered" && (
               <Button size="sm" className="sm:flex-1 rounded-xl h-10" onClick={handleReorder}>
