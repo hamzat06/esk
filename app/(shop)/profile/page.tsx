@@ -15,15 +15,17 @@ export default async function ProfilePage() {
     redirect("/signin?redirect=/profile");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, phone, default_address")
-    .eq("id", user.id)
-    .single();
+  const [profileRes, addressesRes] = await Promise.all([
+    supabase.from("profiles").select("id, full_name, email, phone").eq("id", user.id).single(),
+    supabase
+      .from("user_addresses")
+      .select("id, label, address, phone, is_default")
+      .eq("user_id", user.id)
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: false }),
+  ]);
 
-  if (!profile) {
-    redirect("/signin");
-  }
+  if (!profileRes.data) redirect("/signin");
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -40,11 +42,11 @@ export default async function ProfilePage() {
             My Profile
           </h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Update your personal details and delivery address.
+            Update your personal details and saved addresses.
           </p>
         </div>
 
-        <ProfileForm profile={profile} />
+        <ProfileForm profile={profileRes.data} savedAddresses={addressesRes.data ?? []} />
       </div>
     </main>
   );
