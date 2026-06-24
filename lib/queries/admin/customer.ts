@@ -25,34 +25,40 @@ export async function fetchCustomers(role?: UserRole) {
     throw new Error(error.message);
   }
 
-  // Fetch order stats for each customer
-  const customersWithStats = await Promise.all(
-    (data || []).map(async (customer) => {
-      const { data: orders, error: ordersError } = await supabase
-        .from("orders")
-        .select("total")
-        .eq("user_id", customer.id);
+  const customerIds = (data || []).map((c) => c.id);
 
-      if (ordersError) {
-        console.error("Error fetching orders:", ordersError);
-        return {
-          ...customer,
-          order_count: 0,
-          total_spent: 0,
-        };
-      }
+  // Fetch order stats and saved addresses in parallel for all customers
+  const [ordersRes, addressesRes] = await Promise.all([
+    supabase.from("orders").select("user_id, total").in("user_id", customerIds),
+    supabase
+      .from("user_addresses")
+      .select("user_id, id, label, address, phone, is_default")
+      .in("user_id", customerIds)
+      .order("is_default", { ascending: false }),
+  ]);
 
-      const order_count = orders?.length || 0;
-      const total_spent =
-        orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
+  const ordersByUser = new Map<string, { total: number }[]>();
+  for (const o of ordersRes.data ?? []) {
+    if (!ordersByUser.has(o.user_id)) ordersByUser.set(o.user_id, []);
+    ordersByUser.get(o.user_id)!.push(o);
+  }
 
-      return {
-        ...customer,
-        order_count,
-        total_spent,
-      };
-    }),
-  );
+  const addressesByUser = new Map<string, typeof addressesRes.data>();
+  for (const a of addressesRes.data ?? []) {
+    if (!addressesByUser.has(a.user_id)) addressesByUser.set(a.user_id, []);
+    addressesByUser.get(a.user_id)!.push(a);
+  }
+
+  const customersWithStats = (data || []).map((customer) => {
+    const orders = ordersByUser.get(customer.id) ?? [];
+    const saved_addresses = addressesByUser.get(customer.id) ?? [];
+    return {
+      ...customer,
+      order_count: orders.length,
+      total_spent: orders.reduce((sum, o) => sum + Number(o.total), 0),
+      saved_addresses,
+    };
+  });
 
   return customersWithStats;
 }

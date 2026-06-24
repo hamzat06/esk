@@ -34,6 +34,14 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  address: string;
+  phone: string;
+  is_default: boolean;
+}
+
 interface Customer {
   id: string;
   full_name: string;
@@ -41,12 +49,7 @@ interface Customer {
   phone: string | null;
   role: "customer" | "admin";
   created_at: string;
-  default_address: {
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
-  } | null;
+  saved_addresses: SavedAddress[];
   order_count?: number;
   total_spent?: number;
 }
@@ -457,19 +460,15 @@ export default function CustomersManager({
                 </div>
 
                 {/* Address Preview */}
-                {customer.default_address && (
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex items-start gap-1.5 text-sm text-gray-600">
-                      <MapPin className="size-3.5 mt-0.5 shrink-0" />
-                      <span>
-                        {customer.default_address?.street &&
-                          `${customer.default_address.street}, `}
-                        {customer.default_address?.city &&
-                          `${customer.default_address.city}, `}
-                        {customer.default_address?.state}{" "}
-                        {customer.default_address?.zipCode}
-                      </span>
-                    </div>
+                {customer.saved_addresses.length > 0 && (
+                  <div className="mt-4 pt-4 border-t space-y-1">
+                    {customer.saved_addresses.map((a) => (
+                      <div key={a.id} className="flex items-start gap-1.5 text-sm text-gray-600">
+                        <MapPin className="size-3.5 mt-0.5 shrink-0" />
+                        <span className="font-medium text-gray-700 mr-1">{a.label}:</span>
+                        <span className="truncate">{a.address}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
@@ -515,21 +514,25 @@ export default function CustomersManager({
                 </div>
               </div>
 
-              {selectedCustomer.default_address && (
+              {selectedCustomer.saved_addresses.length > 0 && (
                 <div>
-                  <h3 className="font-semibold mb-2">Default Address</h3>
-                  <div className="flex items-start gap-2 text-sm text-gray-600">
-                    <MapPin className="size-4 mt-0.5 shrink-0" />
-                    <div>
-                      {selectedCustomer.default_address?.street && (
-                        <p>{selectedCustomer.default_address.street}</p>
-                      )}
-                      <p>
-                        {selectedCustomer.default_address?.city},{" "}
-                        {selectedCustomer.default_address?.state}{" "}
-                        {selectedCustomer.default_address?.zipCode}
-                      </p>
-                    </div>
+                  <h3 className="font-semibold mb-2">Saved Addresses</h3>
+                  <div className="space-y-2">
+                    {selectedCustomer.saved_addresses.map((a) => (
+                      <div key={a.id} className="flex items-start gap-2 text-sm">
+                        <MapPin className="size-4 mt-0.5 shrink-0 text-gray-400" />
+                        <div>
+                          <p className="font-medium text-gray-700">
+                            {a.label}
+                            {a.is_default && (
+                              <span className="ml-2 text-xs text-primary font-normal">(default)</span>
+                            )}
+                          </p>
+                          <p className="text-gray-600">{a.address}</p>
+                          <p className="text-gray-400 text-xs">{a.phone}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
