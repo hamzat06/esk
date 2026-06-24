@@ -93,7 +93,9 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-y-hidden! p-0 gap-0 flex flex-col">
+      <DialogContent className="sm:max-w-2xl p-0 gap-0">
+        {/* Inner wrapper owns all sizing — keeps header/footer fixed, middle scrolls */}
+        <div className="flex flex-col h-[95vh] sm:h-auto sm:max-h-[90vh]">
 
         {/* Header */}
         <div className={`${st.bg} border-b px-4 sm:px-6 pt-5 pb-4 shrink-0`}>
@@ -271,6 +273,7 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
             </Button>
           </div>
         </div>
+        </div>{/* end inner wrapper */}
       </DialogContent>
     </Dialog>
   );
