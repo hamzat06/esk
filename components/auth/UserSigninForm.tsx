@@ -14,7 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import GoogleButton from "./GoogleButton";
+// import GoogleButton from "./GoogleButton";
 
 export default function UserSigninForm({
   className,
@@ -91,8 +91,9 @@ export default function UserSigninForm({
           </p>
         </div>
 
-        {/* Google */}
+        {/* Google — uncomment once Google Cloud Console OAuth is configured
         <GoogleButton />
+        */}
 
         {/* Divider */}
         <div className="relative">

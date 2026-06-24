@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { signUpAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
-import GoogleButton from "./GoogleButton";
+// import GoogleButton from "./GoogleButton";
 
 export default function UserSignupForm({
   className,
@@ -99,8 +99,9 @@ export default function UserSignupForm({
           </p>
         </div>
 
-        {/* Google */}
+        {/* Google — uncomment once Google Cloud Console OAuth is configured
         <GoogleButton />
+        */}
 
         {/* Divider */}
         <div className="relative">
