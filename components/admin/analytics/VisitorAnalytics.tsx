@@ -359,7 +359,7 @@ export default function VisitorAnalytics({
                     fill="#8884d8"
                     dataKey="count"
                   >
-                    {deviceData.map((entry, index) => (
+                    {deviceData.map((_entry, index) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}

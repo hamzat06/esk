@@ -86,7 +86,7 @@ export function useAdminProducts(initialData?: Product[]) {
 
       return { previous };
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       queryClient.setQueryData(["admin", "products"], context?.previous);
       toast.error(error.message);
     },
@@ -112,7 +112,7 @@ export function useAdminProducts(initialData?: Product[]) {
 
       return { previous };
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       queryClient.setQueryData(["admin", "products"], context?.previous);
       toast.error(error.message);
     },
@@ -138,7 +138,7 @@ export function useAdminProducts(initialData?: Product[]) {
 
       return { previous };
     },
-    onError: (error, variables, context) => {
+    onError: (error, _variables, context) => {
       queryClient.setQueryData(["admin", "products"], context?.previous);
       toast.error(error.message);
     },
