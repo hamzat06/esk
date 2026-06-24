@@ -50,7 +50,7 @@ const CateringServiceModal = (props: CateringModalProps) => {
   return (
     <Dialog open={dialog.isOpen} onOpenChange={dialog.handleClose}>
       <DialogTrigger asChild>{props?.children}</DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent sheet className="sm:max-w-2xl">
         {!showForm ? (
           <>
             <DialogHeader>

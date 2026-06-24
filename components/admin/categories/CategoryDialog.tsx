@@ -75,7 +75,7 @@ export default function CategoryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent sheet className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold font-playfair">
             {category ? "Edit Category" : "Add Category"}

@@ -453,7 +453,7 @@ export default function AdminsManager({
           open={!!selectedAdmin}
           onOpenChange={() => setSelectedAdmin(null)}
         >
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent sheet className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle className="font-playfair flex items-center gap-3">
                 <div className="size-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -578,7 +578,7 @@ export default function AdminsManager({
         open={isPermissionDialogOpen}
         onOpenChange={closePermissionDialog}
       >
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent sheet className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="size-5 text-primary" />

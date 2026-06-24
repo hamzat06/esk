@@ -291,7 +291,7 @@ export default function ProductDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent sheet className="sm:max-w-3xl flex flex-col">
         <DialogHeader className="shrink-0">
           <DialogTitle className="font-playfair">
             {product ? "Edit Product" : "Add New Product"}

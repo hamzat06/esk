@@ -483,7 +483,7 @@ export default function CustomersManager({
           open={!!selectedCustomer}
           onOpenChange={() => setSelectedCustomer(null)}
         >
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent sheet className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle className="font-playfair flex items-center gap-3">
                 <div className="size-12 bg-primary/10 rounded-full flex items-center justify-center">
@@ -603,7 +603,7 @@ export default function CustomersManager({
 
       {/* Edit Customer Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent sheet className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="size-5 text-primary" />
@@ -684,7 +684,7 @@ export default function CustomersManager({
 
       {/* Promote with Permissions Dialog - NOW USING REGULAR DIALOG */}
       <Dialog open={isPromoteDialogOpen} onOpenChange={closePromoteDialog}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent sheet className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="size-5 text-primary" />

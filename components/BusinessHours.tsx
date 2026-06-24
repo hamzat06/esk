@@ -117,7 +117,7 @@ const BusinessHours = (props: BusinessHoursProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>{props?.children}</DialogTrigger>
-      <DialogContent className="sm:max-w-md px-4">
+      <DialogContent sheet className="sm:max-w-md">
         <DialogHeader>
           <div className="flex flex-col items-center gap-3 mb-2">
             <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">

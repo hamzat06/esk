@@ -283,7 +283,7 @@ export default function BannerManager({
 
       {/* Edit Banner Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={closeEditDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent sheet className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="size-5 text-primary" />
