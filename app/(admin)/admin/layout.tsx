@@ -1,5 +1,6 @@
 import AdminLoading from "@/components/admin/AdminLoading";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import SoundUnlockBanner from "@/components/admin/SoundUnlockBanner";
 import { Suspense } from "react";
 
 export default function AdminLayout({
@@ -9,6 +10,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <SoundUnlockBanner />
       <Suspense fallback={<div />}>
         <AdminSidebar />
       </Suspense>
