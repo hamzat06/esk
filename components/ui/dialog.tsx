@@ -76,17 +76,15 @@ function DialogContent({
         <VisuallyHidden>
           <DialogTitle />
         </VisuallyHidden>
-        {/* Sheet: h-0 sticky wrapper takes no grid row height; button floats over the content */}
+        {/* Sheet: sticky close button stays visible as content scrolls */}
         {showCloseButton && sheet && (
-          <div className="sticky top-0 z-20 h-0 min-h-0 overflow-visible">
-            <DialogPrimitive.Close
-              data-slot="dialog-close"
-              className="absolute top-4 right-4 ring-offset-background focus:ring-primary bg-white hover:bg-gray-100 border border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md p-2 rounded-full opacity-90 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0"
-            >
-              <XIcon className="size-5 text-gray-700" />
-              <span className="sr-only">Close</span>
-            </DialogPrimitive.Close>
-          </div>
+          <DialogPrimitive.Close
+            data-slot="dialog-close"
+            className="sticky top-4 ml-auto mr-4 z-20 ring-offset-background focus:ring-primary bg-white hover:bg-gray-100 border border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md p-2 rounded-full opacity-90 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0"
+          >
+            <XIcon className="size-5 text-gray-700" />
+            <span className="sr-only">Close</span>
+          </DialogPrimitive.Close>
         )}
         {children}
         {/* Default modal: absolute close button works fine (no scroll container conflict) */}
