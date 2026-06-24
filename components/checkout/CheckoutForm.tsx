@@ -206,8 +206,9 @@ export default function CheckoutForm({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Checkout error:", err);
-      setError(err.message || "Failed to proceed to payment. Please try again.");
-      toast.error("Failed to proceed to payment");
+      const msg = err.message || "Failed to proceed to payment. Please try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
