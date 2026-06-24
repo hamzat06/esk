@@ -66,6 +66,76 @@ async function sendEmail(to: string, subject: string, html: string) {
   }
 }
 
+export async function sendWelcomeEmail(customerName: string, customerEmail: string) {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to EddySylva Kitchen</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">
+                EddySylva Kitchen
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; background-color: #A62828; border-radius: 50%; padding: 20px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600; text-align: center;">
+                Welcome, ${customerName}! 🎉
+              </h2>
+              <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">
+                Your account has been created successfully
+              </p>
+
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 20px;">
+                Thank you for joining EddySylva Kitchen! We're excited to have you.
+                You can now order your favourite meals, track your orders, and save your delivery addresses for faster checkout.
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${SITE_URL}" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      Start Ordering
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                Questions? Contact us at
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: #A62828;">${SUPPORT_EMAIL}</a>
+              </p>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(customerEmail, "Welcome to EddySylva Kitchen!", html);
+}
+
 export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const itemsHtml = data.items
     .map(

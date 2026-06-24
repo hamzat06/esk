@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendWelcomeEmail } from "@/lib/notifications/email";
 
 export async function signUpAction(data: {
   email: string;
@@ -37,6 +38,9 @@ export async function signUpAction(data: {
   if (signInError) {
     return { error: signInError.message };
   }
+
+  // Fire and forget — don't block signup if email fails
+  sendWelcomeEmail(data.fullName, data.email).catch(console.error);
 
   return { success: true };
 }
