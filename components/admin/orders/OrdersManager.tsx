@@ -300,19 +300,27 @@ export default function OrdersManager({ initialOrders }: OrdersManagerProps) {
         <div className="grid gap-4">
           {filteredOrders.map((order) => {
             const StatusIcon = statusIcons[order.status];
+            const isNew = (Date.now() - new Date(order.created_at).getTime()) < 10 * 60 * 1000;
             return (
               <Card
                 key={order.id}
-                className="hover:shadow-md transition-shadow"
+                className={`hover:shadow-md transition-shadow ${isNew ? "ring-2 ring-primary" : ""}`}
               >
                 <CardContent className="p-4 sm:p-6">
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {/* Order Info */}
                     <div>
                       <p className="text-sm text-gray-500">Order #</p>
-                      <p className="font-bold font-playfair">
-                        {order.order_number}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold font-playfair">
+                          {order.order_number}
+                        </p>
+                        {isNew && (
+                          <Badge className="bg-primary text-white text-xs px-1.5 py-0.5 animate-pulse">
+                            NEW
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {format(new Date(order.created_at), "MMM d, h:mm a")}
                       </p>
