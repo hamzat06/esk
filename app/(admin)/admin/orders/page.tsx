@@ -11,11 +11,11 @@ const PAGE_SIZE = 15;
 export default async function OrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; status?: string; search?: string }>;
+  searchParams: Promise<{ page?: string; status?: string; search?: string; dateFrom?: string; dateTo?: string }>;
 }) {
   await requirePermission("orders");
 
-  const { page: pageParam, status = "", search = "" } = await searchParams;
+  const { page: pageParam, status = "", search = "", dateFrom = "", dateTo = "" } = await searchParams;
   const page = Math.max(1, Number(pageParam ?? 1));
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -34,6 +34,8 @@ export default async function OrdersPage({
       `order_number.ilike.%${search}%,guest_name.ilike.%${search}%,guest_email.ilike.%${search}%`,
     );
   }
+  if (dateFrom) query = query.gte("created_at", `${dateFrom}T00:00:00`);
+  if (dateTo) query = query.lte("created_at", `${dateTo}T23:59:59`);
 
   const { data: orders, count } = await query;
   const totalCount = count ?? 0;
@@ -47,7 +49,7 @@ export default async function OrdersPage({
       </div>
 
       <Suspense>
-        <OrdersFilters status={status} search={search} />
+        <OrdersFilters status={status} search={search} dateFrom={dateFrom} dateTo={dateTo} />
       </Suspense>
 
       <OrdersTable orders={orders ?? []} />
