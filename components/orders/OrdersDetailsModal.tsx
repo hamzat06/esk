@@ -85,7 +85,7 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
 
         {/* ── Fixed header ── */}
         <div className={`shrink-0 ${st.bg} border-b px-4 sm:px-6 pt-5 pb-4`}>
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-base sm:text-lg font-bold text-gray-900">
