@@ -79,6 +79,7 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
         sheet
+        showCloseButton={false}
         className="sm:max-w-2xl p-0 gap-0"
         style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
       >
