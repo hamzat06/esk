@@ -40,7 +40,7 @@ export default async function OrdersPage({
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
+    <div className="w-full px-4 sm:px-6 py-6 sm:py-8 min-w-0">
       <div className="mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold font-playfair mb-1">Orders</h1>
         <p className="text-gray-500 text-sm">{totalCount} total orders</p>

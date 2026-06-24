@@ -3,8 +3,10 @@
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 const STATUSES = [
   { value: "all", label: "All" },
@@ -26,6 +28,7 @@ export default function OrdersFilters({ status, search }: OrdersFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [inputValue, setInputValue] = useState(search);
 
   function updateParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -42,6 +45,13 @@ export default function OrdersFilters({ status, search }: OrdersFiltersProps) {
     updateParam("search", value);
   }, 400);
 
+  function handleClear() {
+    setInputValue("");
+    updateParam("search", "");
+  }
+
+  const activeStatus = status || "all";
+
   return (
     <div className="space-y-4 mb-6">
       {/* Search */}
@@ -49,27 +59,40 @@ export default function OrdersFilters({ status, search }: OrdersFiltersProps) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
         <Input
           placeholder="Search order # or customer..."
-          defaultValue={search}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="pl-9 h-10"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          className="pl-9 pr-9 h-10"
         />
+        {inputValue && (
+          <button
+            onClick={handleClear}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
       {/* Status tabs */}
       <div className="flex gap-1.5 flex-wrap">
         {STATUSES.map((s) => (
-          <button
+          <Button
             key={s.value}
+            variant="ghost"
+            size="sm"
             onClick={() => updateParam("status", s.value)}
             className={cn(
-              "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-              status === s.value || (s.value === "all" && !status)
-                ? "bg-primary text-white"
+              "h-8 rounded-lg text-sm font-medium transition-colors",
+              activeStatus === s.value
+                ? "bg-primary text-white hover:bg-primary/90 hover:text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200",
             )}
           >
             {s.label}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

@@ -117,15 +117,15 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
 
   return (
     <>
-      <div className="rounded-xl border bg-white overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
+      <div className="rounded-xl border bg-white overflow-hidden w-full">
+        <div className="overflow-x-auto w-full">
+          <Table className="min-w-160">
             <TableHeader>
               <TableRow className="bg-gray-50">
                 <TableHead className="font-semibold text-gray-700">Order</TableHead>
                 <TableHead className="font-semibold text-gray-700">Customer</TableHead>
-                <TableHead className="font-semibold text-gray-700">Items</TableHead>
-                <TableHead className="font-semibold text-gray-700">Type</TableHead>
+                <TableHead className="font-semibold text-gray-700 hidden lg:table-cell">Items</TableHead>
+                <TableHead className="font-semibold text-gray-700 hidden md:table-cell">Type</TableHead>
                 <TableHead className="font-semibold text-gray-700">Total</TableHead>
                 <TableHead className="font-semibold text-gray-700">Status</TableHead>
                 <TableHead className="font-semibold text-gray-700">Update</TableHead>
@@ -147,7 +147,7 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div>
-                          <p className="font-bold font-playfair text-sm">
+                          <p className="font-bold text-sm">
                             #{order.order_number}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -167,13 +167,13 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                       <p className="text-xs text-gray-500 truncate max-w-36">{email}</p>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <p className="text-sm text-gray-700 max-w-48 truncate">
                         {order.items.map((i) => `${i.quantity}× ${i.title}`).join(", ")}
                       </p>
                     </TableCell>
 
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge
                         className={
                           order.delivery_address?.type === "pickup"
