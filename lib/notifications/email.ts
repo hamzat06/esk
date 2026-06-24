@@ -15,10 +15,11 @@ interface OrderEmailData {
   tax: number;
   total: number;
   deliveryAddress: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
+    type?: "delivery" | "pickup";
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
   };
   status: string;
 }
@@ -111,10 +112,10 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                       <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Subtotal:</td>
                       <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.subtotal.toFixed(2)}</td>
                     </tr>
-                    <tr>
+                    ${data.deliveryFee > 0 ? `<tr>
                       <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Delivery Fee:</td>
                       <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.deliveryFee.toFixed(2)}</td>
-                    </tr>
+                    </tr>` : ""}
                     <tr>
                       <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">Tax:</td>
                       <td style="padding: 12px; text-align: right; font-weight: 600;">$${data.tax.toFixed(2)}</td>
@@ -127,15 +128,18 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
                 </table>
               </div>
               
-              <!-- Delivery Address -->
+              <!-- Delivery / Pickup -->
               <div style="margin: 30px 0;">
                 <h3 style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #1f2937;">
-                  Delivery Address
+                  ${data.deliveryAddress.type === "pickup" ? "Pickup" : "Delivery Address"}
                 </h3>
-                <p style="margin: 0; color: #4b5563; line-height: 1.6;">
-                  ${data.deliveryAddress.street}<br>
-                  ${data.deliveryAddress.city}, ${data.deliveryAddress.state} ${data.deliveryAddress.zipCode}
-                </p>
+                ${data.deliveryAddress.type === "pickup"
+                  ? `<p style="margin: 0; color: #4b5563;">Pickup — please collect your order in store.</p>`
+                  : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">
+                      ${data.deliveryAddress.street}<br>
+                      ${data.deliveryAddress.city}, ${data.deliveryAddress.state} ${data.deliveryAddress.zipCode}
+                    </p>`
+                }
               </div>
               
               <!-- Track Order Button -->
@@ -150,7 +154,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
               </table>
               
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 30px 0 0;">
-                Questions about your order? Reply to this email or contact us at <a href="mailto:support@eddysylvakitchen.com" style="color: #A62828;">support@eddysylvakitchen.com</a>
+                Questions about your order? Reply to this email or contact us at <a href="mailto:orders@eddysylvakitchen.us" style="color: #A62828;">orders@eddysylvakitchen.us</a>
               </p>
             </td>
           </tr>
@@ -159,7 +163,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
           <tr>
             <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2024 EddySylva Kitchen. All rights reserved.<br>
+                © ${new Date().getFullYear()} EddySylva Kitchen. All rights reserved.<br>
                 255 South 60th Street, Philadelphia, PA 19139
               </p>
             </td>
@@ -312,7 +316,7 @@ export async function sendOrderStatusEmail(
           <tr>
             <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
               <p style="color: #9ca3af; margin: 0; font-size: 12px;">
-                © 2024 EddySylva Kitchen
+                © ${new Date().getFullYear()} EddySylva Kitchen
               </p>
             </td>
           </tr>
