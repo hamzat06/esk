@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 // import GoogleButton from "./GoogleButton";
 
@@ -23,6 +23,7 @@ export default function UserSigninForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -151,14 +152,22 @@ export default function UserSigninForm({
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className="pl-10 bg-gray-50 border-gray-300 focus:bg-white"
+              className="pl-10 pr-10 bg-gray-50 border-gray-300 focus:bg-white"
               value={formData.password}
               onChange={handleChange}
               disabled={isLoading}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+            </button>
           </div>
         </Field>
 
