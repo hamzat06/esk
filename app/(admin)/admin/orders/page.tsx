@@ -1,30 +1,67 @@
 import { createClient } from "@/lib/supabase/server";
-import OrdersClient from "@/components/admin/orders/OrdersClient";
 import { requirePermission } from "@/lib/auth/permissions";
+import { Suspense } from "react";
+import OrdersFilters from "@/components/admin/orders/OrdersFilters";
+import OrdersTable from "@/components/admin/orders/OrdersTable";
+import OrdersPagination from "@/components/admin/orders/OrdersPagination";
+import OrdersRealtimeNotifier from "@/components/admin/orders/OrdersRealtimeNotifier";
 
-// Cache for faster navigation
-export const revalidate = 30;
+const PAGE_SIZE = 15;
 
-export default async function OrdersPage() {
-  // Require orders permission
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; status?: string; search?: string }>;
+}) {
   await requirePermission("orders");
+
+  const { page: pageParam, status = "", search = "" } = await searchParams;
+  const page = Math.max(1, Number(pageParam ?? 1));
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   const supabase = await createClient();
 
-  // Fetch all orders with customer profiles
-  const { data: orders, error } = await supabase
+  let query = supabase
     .from("orders")
-    .select(
-      `
-      *,
-      profile:profiles(full_name, email, phone)
-    `,
-    )
-    .order("created_at", { ascending: false });
+    .select("*, profile:profiles(full_name, email, phone)", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
-  if (error) {
-    console.error("Failed to fetch orders:", error);
+  if (status && status !== "all") query = query.eq("status", status);
+  if (search) {
+    query = query.or(
+      `order_number.ilike.%${search}%,guest_name.ilike.%${search}%,guest_email.ilike.%${search}%`,
+    );
   }
 
-  return <OrdersClient initialOrders={orders || []} />;
+  const { data: orders, count } = await query;
+  const totalCount = count ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  return (
+    <div className="container mx-auto px-4 sm:px-5 py-6 sm:py-8">
+      <div className="mb-6">
+        <h1 className="text-3xl sm:text-4xl font-bold font-playfair mb-1">Orders</h1>
+        <p className="text-gray-500 text-sm">{totalCount} total orders</p>
+      </div>
+
+      <Suspense>
+        <OrdersFilters status={status} search={search} />
+      </Suspense>
+
+      <OrdersTable orders={orders ?? []} />
+
+      <Suspense>
+        <OrdersPagination
+          page={page}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={PAGE_SIZE}
+        />
+      </Suspense>
+
+      <OrdersRealtimeNotifier />
+    </div>
+  );
 }
