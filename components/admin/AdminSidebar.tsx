@@ -281,7 +281,7 @@ export default function AdminSidebar() {
       </Sheet>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 bg-white border-r">
+      <aside className="hidden lg:block fixed left-0 top-0 bottom-0 w-64 bg-white border-r z-50">
         <SidebarContent />
       </aside>
 

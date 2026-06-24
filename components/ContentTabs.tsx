@@ -47,7 +47,7 @@ const ContentTabs: React.FC<ContentTabsProps> = ({
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="text-sm sm:text-base font-medium text-muted-foreground data-[state=active]:font-semibold data-[state=active]:bg-[#A62828] bg-gray-200 data-[state=active]:text-white relative h-full rounded-full data-[state=active]:shadow-none px-6 sm:px-8 md:px-10 whitespace-nowrap shrink-0"
+                className="text-sm sm:text-base font-medium text-muted-foreground data-[state=active]:font-semibold data-[state=active]:bg-primary! bg-gray-200 data-[state=active]:text-white! relative h-full rounded-full data-[state=active]:shadow-none px-6 sm:px-8 md:px-10 whitespace-nowrap shrink-0"
               >
                 {tab.label}
               </TabsTrigger>
