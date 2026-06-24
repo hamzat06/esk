@@ -19,12 +19,10 @@ import {
   Package,
   MapPin,
   Phone,
-  Calendar,
   Receipt,
   ChefHat,
   Truck,
   ShoppingBag,
-  AlertCircle,
   Copy,
   CheckCheck,
   Navigation,
@@ -33,6 +31,7 @@ import type { Order } from "@/lib/queries/orders";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/components/cart/stores/cartStore";
+import { format } from "date-fns";
 
 interface OrderDetailsModalProps {
   order: Order | null;
@@ -41,104 +40,33 @@ interface OrderDetailsModalProps {
 }
 
 const statusConfig: any = {
-  pending_payment: {
-    label: "Processing Payment",
-    icon: Clock,
-    variant: "info" as const,
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    borderColor: "border-gray-200",
-    description: "Your payment is being processed",
-  },
-  delivered: {
-    label: "Delivered",
-    icon: CheckCircle2,
-    variant: "success" as const,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-    description: "Your order has been successfully delivered",
-  },
-  preparing: {
-    label: "Preparing",
-    icon: ChefHat,
-    variant: "warning" as const,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-    description: "Our kitchen is preparing your order",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    variant: "destructive" as const,
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
-    description: "This order has been cancelled",
-  },
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    variant: "info" as const,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    description: "Waiting for confirmation",
-  },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
-    variant: "info" as const,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-    description: "Your order has been confirmed",
-  },
-  ready: {
-    label: "Ready for Pickup",
-    icon: Package,
-    variant: "success" as const,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-    description: "Your order is ready for pickup",
-  },
-  out_for_delivery: {
-    label: "Out for Delivery",
-    icon: Navigation,
-    variant: "info" as const,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50",
-    borderColor: "border-indigo-200",
-    description: "Your order is on its way to you!",
-  },
+  pending_payment: { label: "Processing Payment", icon: Clock,        color: "text-gray-500",   bg: "bg-gray-50 border-gray-200",    desc: "Your payment is being processed" },
+  pending:         { label: "Pending",            icon: Clock,        color: "text-blue-600",   bg: "bg-blue-50 border-blue-200",    desc: "Waiting for confirmation" },
+  confirmed:       { label: "Confirmed",          icon: CheckCircle2, color: "text-blue-600",   bg: "bg-blue-50 border-blue-200",    desc: "Your order has been confirmed" },
+  preparing:       { label: "Preparing",          icon: ChefHat,      color: "text-orange-600", bg: "bg-orange-50 border-orange-200",desc: "Our kitchen is preparing your order" },
+  ready:           { label: "Ready for Pickup",   icon: Package,      color: "text-green-600",  bg: "bg-green-50 border-green-200",  desc: "Your order is ready" },
+  out_for_delivery:{ label: "Out for Delivery",   icon: Navigation,   color: "text-indigo-600", bg: "bg-indigo-50 border-indigo-200",desc: "Your order is on its way!" },
+  delivered:       { label: "Delivered",          icon: CheckCircle2, color: "text-green-600",  bg: "bg-green-50 border-green-200",  desc: "Your order has been delivered" },
+  cancelled:       { label: "Cancelled",          icon: XCircle,      color: "text-red-500",    bg: "bg-red-50 border-red-200",      desc: "This order has been cancelled" },
 };
 
-export default function OrderDetailsModal({
-  order,
-  open,
-  onClose,
-}: OrderDetailsModalProps) {
+export default function OrderDetailsModal({ order, open, onClose }: OrderDetailsModalProps) {
   const [copied, setCopied] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const addItem = useCartStore((s) => s.addItem);
 
   if (!order) return null;
 
-  const status = statusConfig[order.status] ?? statusConfig.pending_payment;
-  const StatusIcon = status.icon;
+  const st = statusConfig[order.status] ?? statusConfig.pending_payment;
+  const StatusIcon = st.icon;
 
-  const handleCopyOrderNumber = async () => {
+  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(order.orderNumber);
       setCopied(true);
-      toast.success("Order number copied!");
+      toast.success("Copied!");
       setTimeout(() => setCopied(false), 2000);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
-      toast.error("Failed to copy");
-    }
+    } catch { toast.error("Failed to copy"); }
   };
 
   const handleReorder = () => {
@@ -147,17 +75,17 @@ export default function OrderDetailsModal({
     onClose();
   };
 
-  const handleCancelOrder = async () => {
-    if (!confirm("Are you sure you want to cancel this order? This action cannot be undone.")) return;
+  const handleCancel = async () => {
+    if (!confirm("Cancel this order? This cannot be undone.")) return;
     setIsCancelling(true);
     try {
       const res = await fetch(`/api/user/orders/${order.id}/cancel`, { method: "POST" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to cancel order");
-      toast.success("Order cancelled successfully");
+      if (!res.ok) throw new Error(data.error || "Failed");
+      toast.success("Order cancelled");
       onClose();
     } catch (err: any) {
-      toast.error(err.message || "Failed to cancel order");
+      toast.error(err.message || "Failed to cancel");
     } finally {
       setIsCancelling(false);
     }
@@ -165,139 +93,83 @@ export default function OrderDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 flex flex-col">
-        {/* Header with Status Banner */}
-        <div className={`${status.bgColor} border-b ${status.borderColor} px-4 sm:px-6 pt-4 sm:pt-6 pb-4 shrink-0`}>
+      <DialogContent className="sm:max-w-2xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 flex flex-col">
+
+        {/* Header */}
+        <div className={`${st.bg} border-b px-4 sm:px-6 pt-5 pb-4 shrink-0`}>
           <DialogHeader>
             <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <DialogTitle className="text-base sm:text-lg font-bold text-gray-900">
                     #{order.orderNumber}
                   </DialogTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={handleCopyOrderNumber}
+                  <button
+                    onClick={handleCopy}
+                    className="p-1 rounded hover:bg-black/10 transition-colors"
+                    aria-label="Copy order number"
                   >
-                    {copied ? (
-                      <CheckCheck className="size-4 text-green-600" />
-                    ) : (
-                      <Copy className="size-4 text-gray-600" />
-                    )}
-                  </Button>
+                    {copied
+                      ? <CheckCheck className="size-3.5 text-green-600" />
+                      : <Copy className="size-3.5 text-gray-500" />}
+                  </button>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="size-4" />
-                    <span>
-                      {new Date(order.createdAt).toLocaleDateString("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
-                  </div>
-                  <span>•</span>
-                  <div className="flex items-center gap-1.5">
-                    <Package className="size-4" />
-                    <span>
-                      {(order.items ?? []).length}{" "}
-                      {(order.items ?? []).length === 1 ? "item" : "items"}
-                    </span>
-                  </div>
-                </div>
+                <p className="text-xs text-gray-500">
+                  {format(new Date(order.createdAt), "MMM d, yyyy · h:mm a")}
+                  {" · "}
+                  {order.items.length} {order.items.length === 1 ? "item" : "items"}
+                </p>
               </div>
-
-              {/* Status Badge */}
-              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${status.bgColor} ${status.borderColor} bg-white`}>
-                <StatusIcon className={`size-3 ${status.color}`} />
-                <span className={status.color}>{status.label}</span>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${st.bg}`}>
+                <StatusIcon className={`size-3 ${st.color}`} />
+                <span className={st.color}>{st.label}</span>
               </div>
             </div>
           </DialogHeader>
-
-          {/* Status Description */}
-          <div className="mt-4 flex items-start gap-2 text-sm text-gray-700">
-            <AlertCircle className="size-4 shrink-0 mt-0.5" />
-            <p>{status.description}</p>
-          </div>
+          <p className="text-xs text-gray-600 mt-3">{st.desc}</p>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="p-6 space-y-6">
-            {/* Order Items */}
+          <div className="p-4 sm:p-6 space-y-5">
+
+            {/* Items */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Receipt className="size-5 text-gray-700" />
-                <h3 className="text-lg font-bold text-gray-900">Order Items</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <Receipt className="size-4 text-gray-600" />
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">Order Items</h3>
               </div>
-              <div className="space-y-3">
-                {(order.items ?? []).map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 transition-colors"
-                  >
-                    <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-white border-2 border-gray-200">
+              <div className="space-y-2">
+                {order.items.map((item) => (
+                  <div key={item.id} className="flex gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-white">
                       {item.image ? (
                         isVideoAsset(item.image) ? (
-                          <Image
-                            src={getVideoThumbnailUrl(getPublicId(item.image))}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                          />
+                          <Image src={getVideoThumbnailUrl(getPublicId(item.image))} alt={item.title} fill className="object-cover" />
                         ) : (
-                          <CldImage
-                            src={item.image}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                            crop={{ type: "auto", source: true }}
-                          />
+                          <CldImage src={item.image} alt={item.title} fill className="object-cover" crop={{ type: "auto", source: true }} />
                         )
                       ) : (
-                        <Image
-                          src="/assets/jollof-rice-chicken.jpg"
-                          alt={item.title}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src="/assets/jollof-rice-chicken.jpg" alt={item.title} fill className="object-cover" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-base line-clamp-1 mb-2 text-gray-900">
-                        {item.title}
-                      </h4>
+                      <p className="font-semibold text-sm text-gray-900 leading-snug line-clamp-1">{item.title}</p>
                       {Object.keys(item.options).length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {Object.values(item.options).map((option, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-white px-2.5 py-1 rounded-full border border-gray-300 text-gray-700 font-medium"
-                            >
-                              {option.label}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {Object.values(item.options).map((opt, i) => (
+                            <span key={i} className="text-[10px] bg-white px-2 py-0.5 rounded-full border border-gray-300 text-gray-600">
+                              {opt.label}
                             </span>
                           ))}
                         </div>
                       )}
-                      <p className="text-sm text-gray-600">
-                        Quantity:{" "}
-                        <span className="font-semibold">{item.quantity}</span>
-                      </p>
+                      <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-bold text-lg font-playfair text-gray-900">
-                        ${item.totalPrice.toFixed(2)}
-                      </p>
+                      <p className="font-bold text-sm text-gray-900">${item.totalPrice.toFixed(2)}</p>
                       {item.quantity > 1 && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          ${item.unitPrice.toFixed(2)} each
-                        </p>
+                        <p className="text-[10px] text-gray-400">${item.unitPrice.toFixed(2)} ea</p>
                       )}
                     </div>
                   </div>
@@ -307,52 +179,31 @@ export default function OrderDetailsModal({
 
             <Separator />
 
-            {/* Delivery / Pickup Information */}
+            {/* Delivery info */}
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                {order.deliveryAddress?.type === "pickup" ? (
-                  <ShoppingBag className="size-5 text-gray-700" />
-                ) : (
-                  <Truck className="size-5 text-gray-700" />
-                )}
-                <h3 className="text-lg font-bold text-gray-900">
-                  {order.deliveryAddress?.type === "pickup"
-                    ? "Pickup Information"
-                    : "Delivery Information"}
+              <div className="flex items-center gap-2 mb-3">
+                {order.deliveryAddress?.type === "pickup"
+                  ? <ShoppingBag className="size-4 text-gray-600" />
+                  : <Truck className="size-4 text-gray-600" />}
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                  {order.deliveryAddress?.type === "pickup" ? "Pickup" : "Delivery"}
                 </h3>
               </div>
-              <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-4">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <MapPin className="size-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    {order.deliveryAddress?.type === "pickup" ? (
-                      <>
-                        <p className="font-semibold text-sm text-gray-900 mb-1.5">
-                          Pickup — Customer will collect in store
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-sm text-gray-900 mb-1.5">Delivery Address</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{order.deliveryAddress?.address}</p>
-                      </>
-                    )}
+              <div className="rounded-xl border border-gray-200 bg-gray-50 divide-y divide-gray-200">
+                <div className="flex items-start gap-3 p-3.5">
+                  <MapPin className="size-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Address</p>
+                    {order.deliveryAddress?.type === "pickup"
+                      ? <p className="text-sm text-gray-700">Customer will collect in store</p>
+                      : <p className="text-sm text-gray-700 leading-relaxed">{order.deliveryAddress?.address}</p>}
                   </div>
                 </div>
-                <Separator className="bg-gray-200" />
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Phone className="size-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm text-gray-900 mb-1.5">
-                      Contact Number
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      {order.deliveryAddress?.phone}
-                    </p>
+                <div className="flex items-center gap-3 p-3.5">
+                  <Phone className="size-4 text-primary shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Contact</p>
+                    <p className="text-sm text-gray-700">{order.deliveryAddress?.phone}</p>
                   </div>
                 </div>
               </div>
@@ -362,13 +213,9 @@ export default function OrderDetailsModal({
               <>
                 <Separator />
                 <div>
-                  <h3 className="text-lg font-bold mb-3 text-gray-900">
-                    Special Instructions
-                  </h3>
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                    <p className="text-sm text-gray-800 leading-relaxed">
-                      {order.notes}
-                    </p>
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Special Instructions</h3>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5">
+                    <p className="text-sm text-gray-800 leading-relaxed">{order.notes}</p>
                   </div>
                 </div>
               </>
@@ -376,77 +223,50 @@ export default function OrderDetailsModal({
 
             <Separator />
 
-            {/* Order Summary */}
+            {/* Payment summary */}
             <div>
-              <h3 className="text-lg font-bold mb-4 text-gray-900">
-                Payment Summary
-              </h3>
-              <div className="bg-linear-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 space-y-3">
+              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">Payment Summary</h3>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-2.5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Subtotal</span>
-                  <span className="font-semibold text-gray-900">
-                    ${(order.subtotal ?? 0).toFixed(2)}
-                  </span>
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium text-gray-900">${(order.subtotal ?? 0).toFixed(2)}</span>
                 </div>
                 {(order.deliveryFee ?? 0) > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-700">Delivery Fee</span>
-                    <span className="font-semibold text-gray-900">
-                      ${(order.deliveryFee ?? 0).toFixed(2)}
-                    </span>
+                    <span className="text-gray-600">Delivery Fee</span>
+                    <span className="font-medium text-gray-900">${(order.deliveryFee ?? 0).toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Tax</span>
-                  <span className="font-semibold text-gray-900">
-                    ${(order.tax ?? 0).toFixed(2)}
-                  </span>
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-medium text-gray-900">${(order.tax ?? 0).toFixed(2)}</span>
                 </div>
                 <Separator className="bg-gray-200" />
-                <div className="flex justify-between items-center pt-2">
-                  <span className="font-bold text-lg text-gray-900">
-                    Total Paid
-                  </span>
-                  <span className="text-3xl font-bold font-playfair text-primary">
-                    ${(order.total ?? 0).toFixed(2)}
-                  </span>
+                <div className="flex justify-between items-center pt-1">
+                  <span className="font-bold text-gray-900">Total Paid</span>
+                  <span className="text-xl font-bold text-primary">${(order.total ?? 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row gap-3">
+        {/* Footer */}
+        <div className="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-200 shrink-0">
+          <div className="flex flex-col sm:flex-row gap-2">
             {order.status === "delivered" && (
-              <Button
-                size="lg"
-                className="sm:flex-1 rounded-xl"
-                onClick={handleReorder}
-              >
-                <Package className="size-4 mr-2" />
-                Order Again
+              <Button size="sm" className="sm:flex-1 rounded-xl h-10" onClick={handleReorder}>
+                <Package className="size-4 mr-2" />Order Again
               </Button>
             )}
             {(order.status === "pending" || order.status === "confirmed") && (
-              <Button
-                size="lg"
-                variant="destructive"
-                className="sm:flex-1 rounded-xl"
-                onClick={handleCancelOrder}
-                disabled={isCancelling}
-              >
+              <Button size="sm" variant="destructive" className="sm:flex-1 rounded-xl h-10" onClick={handleCancel} disabled={isCancelling}>
                 <XCircle className="size-4 mr-2" />
-                {isCancelling ? "Cancelling..." : "Cancel Order"}
+                {isCancelling ? "Cancelling…" : "Cancel Order"}
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="lg"
-              className="sm:flex-1 rounded-xl"
-              onClick={onClose}
-            >
+            <Button variant="outline" size="sm" className="sm:flex-1 rounded-xl h-10" onClick={onClose}>
               Close
             </Button>
           </div>

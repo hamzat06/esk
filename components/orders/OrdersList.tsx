@@ -16,7 +16,6 @@ import {
   Filter,
   ChevronRight,
   MapPin,
-  Calendar,
   ChefHat,
   Navigation,
 } from "lucide-react";
@@ -30,77 +29,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Order } from "@/lib/queries/orders";
+import { format } from "date-fns";
 
-type OrdersListProps = {
-  orders: Order[];
-};
+type OrdersListProps = { orders: Order[] };
 
 const statusConfig = {
-  pending_payment: {
-    label: "Processing Payment",
-    icon: Clock,
-    variant: "info" as const,
-    color: "text-gray-600",
-    bgColor: "bg-gray-50",
-    borderColor: "border-gray-200",
-  },
-  delivered: {
-    label: "Delivered",
-    icon: CheckCircle2,
-    variant: "success" as const,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-  },
-  preparing: {
-    label: "Preparing",
-    icon: ChefHat,
-    variant: "warning" as const,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50",
-    borderColor: "border-orange-200",
-  },
-  cancelled: {
-    label: "Cancelled",
-    icon: XCircle,
-    variant: "destructive" as const,
-    color: "text-red-600",
-    bgColor: "bg-red-50",
-    borderColor: "border-red-200",
-  },
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    variant: "info" as const,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-  },
-  confirmed: {
-    label: "Confirmed",
-    icon: CheckCircle2,
-    variant: "info" as const,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-    borderColor: "border-blue-200",
-  },
-  ready: {
-    label: "Ready for Pickup",
-    icon: Package,
-    variant: "success" as const,
-    color: "text-green-600",
-    bgColor: "bg-green-50",
-    borderColor: "border-green-200",
-  },
-  out_for_delivery: {
-    label: "Out for Delivery",
-    icon: Navigation,
-    variant: "info" as const,
-    color: "text-indigo-600",
-    bgColor: "bg-indigo-50",
-    borderColor: "border-indigo-200",
-  },
+  pending_payment: { label: "Processing", icon: Clock, color: "text-gray-500", bg: "bg-gray-100 border-gray-200" },
+  pending:         { label: "Pending",    icon: Clock, color: "text-blue-600",  bg: "bg-blue-50 border-blue-200" },
+  confirmed:       { label: "Confirmed",  icon: CheckCircle2, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+  preparing:       { label: "Preparing",  icon: ChefHat, color: "text-orange-600", bg: "bg-orange-50 border-orange-200" },
+  ready:           { label: "Ready",      icon: Package, color: "text-green-600", bg: "bg-green-50 border-green-200" },
+  out_for_delivery:{ label: "On the way", icon: Navigation, color: "text-indigo-600", bg: "bg-indigo-50 border-indigo-200" },
+  delivered:       { label: "Delivered",  icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50 border-green-200" },
+  cancelled:       { label: "Cancelled",  icon: XCircle, color: "text-red-500", bg: "bg-red-50 border-red-200" },
 };
+
+const ACTIVE = ["pending", "confirmed", "preparing", "ready", "out_for_delivery"];
 
 export default function OrdersList({ orders }: OrdersListProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -108,49 +52,32 @@ export default function OrdersList({ orders }: OrdersListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Filter orders
-  const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
-      const matchesSearch =
-        (order.orderNumber ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (order.items ?? []).some((item) =>
-          item.title?.toLowerCase().includes(searchQuery.toLowerCase()),
-        );
+  const filteredOrders = useMemo(() =>
+    orders.filter((o) => {
+      const matchSearch =
+        o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.items.some((i) => i.title?.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchStatus = statusFilter === "all" || o.status === statusFilter;
+      return matchSearch && matchStatus;
+    }),
+    [orders, searchQuery, statusFilter],
+  );
 
-      const matchesStatus =
-        statusFilter === "all" || order.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [orders, searchQuery, statusFilter]);
-
-  function handleViewOrder(order: Order) {
-    setSelectedOrder(order);
-    setIsModalOpen(true);
-  }
-
-  function handleCloseModal() {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedOrder(null), 300);
-  }
+  function openOrder(order: Order) { setSelectedOrder(order); setIsModalOpen(true); }
+  function closeModal() { setIsModalOpen(false); setTimeout(() => setSelectedOrder(null), 300); }
 
   if (orders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 sm:py-32 text-center">
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-6">
-          <ShoppingBag className="size-10 sm:size-12 text-primary" />
+      <div className="flex flex-col items-center justify-center py-24 text-center">
+        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
+          <ShoppingBag className="size-10 text-primary" />
         </div>
-        <h3 className="text-2xl sm:text-3xl font-bold font-playfair text-gray-900 mb-3">
-          No orders yet
-        </h3>
-        <p className="text-sm sm:text-base text-gray-600 max-w-sm mb-8">
-          Start exploring our menu and place your first order to see it here
+        <h3 className="text-xl font-bold text-gray-900 mb-2">No orders yet</h3>
+        <p className="text-sm text-gray-500 max-w-xs mb-7">
+          Start exploring our menu and place your first order
         </p>
-        <Button size="lg" className="px-8 rounded-xl" asChild>
-          <Link href="/">
-            <ShoppingBag className="size-4 mr-2" />
-            Start Ordering
-          </Link>
+        <Button size="lg" className="rounded-xl px-8" asChild>
+          <Link href="/"><ShoppingBag className="size-4 mr-2" />Start Ordering</Link>
         </Button>
       </div>
     );
@@ -158,217 +85,134 @@ export default function OrdersList({ orders }: OrdersListProps) {
 
   return (
     <>
-      {/* Search and Filter Bar */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 mb-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
-            <Input
-              placeholder="Search by order number or item..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 h-11 rounded-xl border-gray-300 focus:border-primary"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-56 h-11 rounded-xl border-gray-300">
-              <Filter className="size-4 mr-2" />
-              <SelectValue placeholder="All Orders" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Orders</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="ready">Ready</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <Input
+            placeholder="Search orders or items..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-10 rounded-xl border-gray-300"
+          />
         </div>
-
-        {/* Results count */}
-        {(searchQuery || statusFilter !== "all") && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-600">
-              <span className="font-semibold text-gray-900">
-                {filteredOrders.length}
-              </span>{" "}
-              {filteredOrders.length === 1 ? "order" : "orders"} found
-            </p>
-          </div>
-        )}
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-44 h-10 rounded-xl border-gray-300">
+            <Filter className="size-3.5 mr-2 text-gray-400" />
+            <SelectValue placeholder="All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Orders</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="confirmed">Confirmed</SelectItem>
+            <SelectItem value="preparing">Preparing</SelectItem>
+            <SelectItem value="ready">Ready</SelectItem>
+            <SelectItem value="out_for_delivery">On the way</SelectItem>
+            <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Orders List */}
+      {/* Results */}
       {filteredOrders.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-gray-200">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-            <Search className="size-8 text-gray-400" />
-          </div>
-          <p className="text-lg font-medium text-gray-900 mb-2">
-            No orders found
-          </p>
-          <p className="text-sm text-gray-500">
-            Try adjusting your search or filter
-          </p>
+        <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
+          <Search className="size-8 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm font-medium text-gray-700">No orders found</p>
+          <p className="text-xs text-gray-400 mt-1">Try a different search or filter</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredOrders.map((order) => {
-            const status = statusConfig[order.status] ?? statusConfig.pending_payment;
-            const StatusIcon = status.icon;
-            const isActive = [
-              "pending",
-              "confirmed",
-              "preparing",
-              "ready",
-            ].includes(order.status);
+            const st = statusConfig[order.status] ?? statusConfig.pending_payment;
+            const StatusIcon = st.icon;
+            const isActive = ACTIVE.includes(order.status);
+            const itemSummary = order.items
+              .map((i) => `${i.quantity}× ${i.title}`)
+              .join(", ");
 
             return (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-200 cursor-pointer group"
-                onClick={() => handleViewOrder(order)}
+                onClick={() => openOrder(order)}
+                className="bg-white rounded-2xl border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer"
               >
-                <div className="p-5 sm:p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-bold text-base text-gray-900">
-                          #{order.orderNumber}
-                        </h3>
-                        {isActive && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary animate-pulse">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="size-4" />
-                          <span>
-                            {new Date(order.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <Package className="size-4" />
-                          <span>
-                            {(order.items ?? []).length}{" "}
-                            {(order.items ?? []).length === 1 ? "item" : "items"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                {/* Active pulse bar */}
+                {isActive && (
+                  <div className="h-1 rounded-t-2xl bg-primary animate-pulse" />
+                )}
 
-                    {/* Status Badge */}
-                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${status.bgColor} ${status.borderColor}`}>
-                      <StatusIcon className={`size-3 ${status.color}`} />
-                      <span className={status.color}>{status.label}</span>
-                    </div>
-                  </div>
-
-                  {/* Delivery / Pickup */}
-                  <div className="flex items-start gap-2.5 mb-4 p-3 rounded-xl bg-gray-50 border border-gray-100">
-                    <MapPin className="size-4 text-gray-600 shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      {order.deliveryAddress?.type === "pickup" ? (
-                        <p className="text-sm font-semibold text-gray-700">Pickup — collect in store</p>
-                      ) : (
-                        <p className="text-sm text-gray-700 leading-relaxed">{order.deliveryAddress?.address}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Items Preview */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-2">
-                      {(order.items ?? []).slice(0, 4).map((item) => (
-                        <div key={item.id} className="shrink-0 group/item">
-                          <div className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-gray-200 group-hover/item:border-primary transition-colors">
-                            {item.image ? (
-                              isVideoAsset(item.image) ? (
-                                <Image
-                                  src={getVideoThumbnailUrl(getPublicId(item.image))}
-                                  alt={item.title}
-                                  fill
-                                  className="object-cover"
-                                />
-                              ) : (
-                                <CldImage
-                                  src={item.image}
-                                  alt={item.title}
-                                  fill
-                                  className="object-cover"
-                                  crop={{ type: "auto", source: true }}
-                                />
-                              )
-                            ) : (
-                              <Image
-                                src="/assets/jollof-rice-chicken.jpg"
-                                alt={item.title}
-                                fill
-                                className="object-cover"
-                              />
-                            )}
-                            {item.quantity > 1 && (
-                              <div className="absolute top-1 right-1 bg-black/75 text-white text-xs font-bold px-1.5 py-0.5 rounded-md">
-                                ×{item.quantity}
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-600 mt-1.5 text-center line-clamp-1 max-w-20">
-                            {item.title}
-                          </p>
-                        </div>
-                      ))}
-                      {(order.items ?? []).length > 4 && (
-                        <div className="shrink-0">
-                          <div className="w-20 h-20 rounded-xl bg-linear-to-br from-gray-100 to-gray-50 border-2 border-gray-200 flex items-center justify-center">
-                            <span className="text-sm font-bold text-gray-600">
-                              +{(order.items ?? []).length - 4}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 mt-1.5 text-center">
-                            more
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Order Total</p>
-                      <p className="text-2xl font-bold font-playfair text-gray-900">
-                        ${(order.total ?? 0).toFixed(2)}
+                <div className="p-4 sm:p-5">
+                  {/* Row 1: order number + status + date */}
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="min-w-0">
+                      <p className="text-xs text-gray-400 uppercase tracking-wide font-medium mb-0.5">
+                        Order
+                      </p>
+                      <p className="text-sm font-bold text-gray-900 leading-tight">
+                        #{order.orderNumber}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {format(new Date(order.createdAt), "MMM d, yyyy · h:mm a")}
                       </p>
                     </div>
-                    <Button
-                      variant="outline"
-                      className="gap-2 rounded-xl group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewOrder(order);
-                      }}
-                    >
-                      View Details
-                      <ChevronRight className="size-4" />
-                    </Button>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${st.bg}`}>
+                      <StatusIcon className={`size-3 ${st.color}`} />
+                      <span className={st.color}>{st.label}</span>
+                    </div>
+                  </div>
+
+                  {/* Row 2: item summary */}
+                  <p className="text-xs text-gray-500 line-clamp-1 mb-3">{itemSummary}</p>
+
+                  {/* Row 3: item thumbnails */}
+                  <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+                    {order.items.slice(0, 5).map((item) => (
+                      <div key={item.id} className="relative w-12 h-12 shrink-0 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                        {item.image ? (
+                          isVideoAsset(item.image) ? (
+                            <Image src={getVideoThumbnailUrl(getPublicId(item.image))} alt={item.title} fill className="object-cover" />
+                          ) : (
+                            <CldImage src={item.image} alt={item.title} fill className="object-cover" crop={{ type: "auto", source: true }} />
+                          )
+                        ) : (
+                          <Image src="/assets/jollof-rice-chicken.jpg" alt={item.title} fill className="object-cover" />
+                        )}
+                        {item.quantity > 1 && (
+                          <div className="absolute bottom-0 right-0 bg-black/70 text-white text-[10px] font-bold px-1 rounded-tl-md">
+                            ×{item.quantity}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {order.items.length > 5 && (
+                      <div className="w-12 h-12 shrink-0 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center">
+                        <span className="text-xs font-bold text-gray-500">+{order.items.length - 5}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Row 4: address + total + action */}
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <MapPin className="size-3.5 text-gray-400 shrink-0" />
+                      <p className="text-xs text-gray-500 truncate">
+                        {order.deliveryAddress?.type === "pickup"
+                          ? "Pickup in store"
+                          : order.deliveryAddress?.address}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <p className="text-base font-bold text-gray-900">
+                        ${(order.total ?? 0).toFixed(2)}
+                      </p>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); openOrder(order); }}
+                        className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-primary hover:text-white transition-colors"
+                      >
+                        <ChevronRight className="size-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -377,12 +221,7 @@ export default function OrdersList({ orders }: OrdersListProps) {
         </div>
       )}
 
-      {/* Order Details Modal */}
-      <OrderDetailsModal
-        order={selectedOrder}
-        open={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      <OrderDetailsModal order={selectedOrder} open={isModalOpen} onClose={closeModal} />
     </>
   );
 }
