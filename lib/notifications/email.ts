@@ -15,10 +15,7 @@ interface OrderEmailData {
   total: number;
   deliveryAddress: {
     type?: "delivery" | "pickup";
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
+    address?: string;
   };
   status: string;
 }
@@ -91,10 +88,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   const addressHtml =
     data.deliveryAddress.type === "pickup"
       ? `<p style="margin: 0; color: #4b5563;">Pickup — please collect your order in store.</p>`
-      : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">
-          ${data.deliveryAddress.street}<br>
-          ${data.deliveryAddress.city}, ${data.deliveryAddress.state} ${data.deliveryAddress.zipCode}
-        </p>`;
+      : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">${data.deliveryAddress.address ?? ""}</p>`;
 
   const deliveryFeeRow =
     data.deliveryFee > 0

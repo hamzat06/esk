@@ -15,13 +15,19 @@ export default async function CheckoutPage() {
   } = await supabase.auth.getUser();
 
   let profile = null;
+  let savedAddresses: { id: string; label: string; address: string; phone: string; is_default: boolean }[] = [];
   if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    profile = data;
+    const [profileRes, addressesRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase
+        .from("user_addresses")
+        .select("id, label, address, phone, is_default")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false })
+        .order("created_at", { ascending: false }),
+    ]);
+    profile = profileRes.data;
+    savedAddresses = addressesRes.data ?? [];
   }
 
   const { data: shopInfoData } = await supabase
@@ -55,7 +61,7 @@ export default async function CheckoutPage() {
         <CheckoutForm
           userName={profile?.full_name || ""}
           userEmail={user?.email || ""}
-          defaultAddress={profile?.default_address}
+          savedAddresses={savedAddresses}
           deliveryFee={deliveryFee}
           deliveryEnabled={deliveryEnabled}
           minimumOrder={minimumOrder}

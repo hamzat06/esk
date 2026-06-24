@@ -47,10 +47,7 @@ interface Order {
   items: { title: string; quantity: number; totalPrice: number }[];
   delivery_address: {
     type?: "delivery" | "pickup";
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
+    address?: string;
     phone: string;
   };
   notes: string | null;
@@ -278,10 +275,7 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
                 {selectedOrder.delivery_address?.type === "pickup" ? (
                   <p className="font-medium text-primary">Pickup — customer will collect in store</p>
                 ) : (
-                  <>
-                    <p>{selectedOrder.delivery_address?.street}</p>
-                    <p>{selectedOrder.delivery_address?.city}, {selectedOrder.delivery_address?.state} {selectedOrder.delivery_address?.zipCode}</p>
-                  </>
+                  <p>{selectedOrder.delivery_address?.address}</p>
                 )}
               </div>
 

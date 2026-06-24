@@ -16,6 +16,8 @@ import {
   AlertCircle,
   Truck,
   ShoppingBag,
+  Plus,
+  Check,
 } from "lucide-react";
 import { CldImage } from "next-cloudinary";
 import Image from "next/image";
@@ -23,15 +25,18 @@ import { toast } from "react-hot-toast";
 import { isVideoAsset, getPublicId, getVideoThumbnailUrl } from "@/lib/cloudinary";
 import { supabase } from "@/lib/supabase/client";
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  address: string;
+  phone: string;
+  is_default: boolean;
+}
+
 interface CheckoutFormProps {
   userName: string;
   userEmail: string;
-  defaultAddress?: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  } | null;
+  savedAddresses: SavedAddress[];
   deliveryFee: number;
   deliveryEnabled: boolean;
   minimumOrder: number;
@@ -47,7 +52,7 @@ interface CheckoutFormProps {
 
 export default function CheckoutForm({
   deliveryFee,
-  defaultAddress,
+  savedAddresses,
   userName,
   userEmail,
   deliveryEnabled,
@@ -62,7 +67,6 @@ export default function CheckoutForm({
 
   const isGuest = !userEmail;
 
-  // If delivery is disabled, force pickup
   const [orderType, setOrderType] = useState<"delivery" | "pickup">(
     deliveryEnabled ? "delivery" : "pickup",
   );
@@ -71,7 +75,16 @@ export default function CheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const [shopOpen, setShopOpen] = useState(isOpen);
 
-  // Re-check open status client-side using shop's timezone (avoids server UTC mismatch)
+  const defaultSaved = savedAddresses.find((a) => a.is_default) ?? savedAddresses[0] ?? null;
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+    defaultSaved?.id ?? null,
+  );
+  const [showNewAddress, setShowNewAddress] = useState(savedAddresses.length === 0);
+  const [saveAddress, setSaveAddress] = useState(false);
+  const [saveLabel, setSaveLabel] = useState("Home");
+
+  const selectedSaved = savedAddresses.find((a) => a.id === selectedAddressId) ?? null;
+
   useEffect(() => {
     Promise.all([
       supabase.from("shop_settings").select("value").eq("key", "opening_hours").single(),
@@ -81,7 +94,7 @@ export default function CheckoutForm({
       if (!hours) return;
       const tz: string = infoRes.data?.value?.timezone ?? "America/New_York";
       const now = new Date(new Date().toLocaleString("en-US", { timeZone: tz }));
-      const days = ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"];
+      const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
       const schedule = hours[days[now.getDay()]];
       if (!schedule || schedule.closed) { setShopOpen(false); return; }
       const cur = now.getHours() * 60 + now.getMinutes();
@@ -94,10 +107,7 @@ export default function CheckoutForm({
   const [formData, setFormData] = useState({
     name: userName || "",
     email: userEmail || "",
-    street: defaultAddress?.street || "",
-    city: defaultAddress?.city || "",
-    state: defaultAddress?.state || "",
-    zipCode: defaultAddress?.zipCode || "",
+    address: "",
     phone: "",
     notes: "",
   });
@@ -108,9 +118,7 @@ export default function CheckoutForm({
   const tax = subtotal * 0.08;
   const total = subtotal + appliedDeliveryFee + tax;
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (error) setError(null);
   };
@@ -122,59 +130,57 @@ export default function CheckoutForm({
     setError(null);
 
     if (isBelowMinimum) {
-      setError(`Minimum order for delivery is $${minimumOrder.toFixed(2)}. Add $${(minimumOrder - subtotal).toFixed(2)} more to proceed.`);
+      setError(
+        `Minimum order for delivery is $${minimumOrder.toFixed(2)}. Add $${(minimumOrder - subtotal).toFixed(2)} more to proceed.`,
+      );
       return;
     }
 
     if (isGuest) {
-      if (!formData.name.trim()) {
-        setError("Please provide your full name");
-        return;
-      }
-      if (
-        !formData.email.trim() ||
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
-      ) {
-        setError("Please provide a valid email address");
-        return;
+      if (!formData.name.trim()) { setError("Please provide your full name"); return; }
+      if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        setError("Please provide a valid email address"); return;
       }
     }
+
+    let resolvedAddress = "";
+    let resolvedPhone = "";
 
     if (!isPickup) {
-      if (
-        !formData.street ||
-        !formData.city ||
-        !formData.state ||
-        !formData.zipCode
-      ) {
-        setError("Please fill in all address fields");
-        return;
+      if (selectedSaved && !showNewAddress) {
+        resolvedAddress = selectedSaved.address;
+        resolvedPhone = selectedSaved.phone;
+      } else {
+        if (!formData.address.trim()) { setError("Please enter your delivery address"); return; }
+        resolvedAddress = formData.address.trim();
+        resolvedPhone = formData.phone.trim();
       }
+    } else {
+      resolvedPhone = formData.phone.trim();
     }
 
-    if (!formData.phone) {
-      setError("Please provide a phone number");
-      return;
-    }
-
-    if (items.length === 0) {
-      setError("Your cart is empty");
-      return;
-    }
+    if (!resolvedPhone) { setError("Please provide a phone number"); return; }
+    if (items.length === 0) { setError("Your cart is empty"); return; }
 
     setIsLoading(true);
 
     try {
+      if (!isPickup && showNewAddress && saveAddress && !isGuest) {
+        await fetch("/api/user/addresses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            label: saveLabel || "Home",
+            address: resolvedAddress,
+            phone: resolvedPhone,
+            is_default: savedAddresses.length === 0,
+          }),
+        });
+      }
+
       const deliveryAddress = isPickup
-        ? { type: "pickup", phone: formData.phone }
-        : {
-            type: "delivery",
-            street: formData.street,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            phone: formData.phone,
-          };
+        ? { type: "pickup", phone: resolvedPhone }
+        : { type: "delivery", address: resolvedAddress, phone: resolvedPhone };
 
       const response = await fetch("/api/checkout", {
         method: "POST",
@@ -192,22 +198,15 @@ export default function CheckoutForm({
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
+      if (!response.ok) throw new Error(data.error || "Failed to create checkout session");
       if (!data.url) throw new Error("No checkout URL returned");
 
       clearCart();
-
       window.location.href = data.url;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error("Checkout error:", err);
-      setError(
-        err.message || "Failed to proceed to payment. Please try again.",
-      );
+      setError(err.message || "Failed to proceed to payment. Please try again.");
       toast.error("Failed to proceed to payment");
     } finally {
       setIsLoading(false);
@@ -222,9 +221,7 @@ export default function CheckoutForm({
             <AlertCircle className="size-8 text-gray-400" />
           </div>
           <h3 className="text-xl font-semibold mb-2">Your cart is empty</h3>
-          <p className="text-gray-600 mb-6">
-            Add items to your cart to checkout
-          </p>
+          <p className="text-gray-600 mb-6">Add items to your cart to checkout</p>
           <Button onClick={() => router.push("/")}>Continue Shopping</Button>
         </CardContent>
       </Card>
@@ -240,9 +237,7 @@ export default function CheckoutForm({
         <h2 className="text-2xl font-bold font-playfair text-gray-900 mb-2">
           We&apos;re currently closed
         </h2>
-        <p className="text-gray-600 mb-1">
-          Orders cannot be placed outside of business hours.
-        </p>
+        <p className="text-gray-600 mb-1">Orders cannot be placed outside of business hours.</p>
         {nextOpenTime && (
           <p className="text-sm text-gray-500">
             We open at{" "}
@@ -270,7 +265,6 @@ export default function CheckoutForm({
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
 
           {/* Delivery / Pickup selector */}
@@ -338,7 +332,7 @@ export default function CheckoutForm({
             </CardContent>
           </Card>
 
-          {/* Delivery Address — only for delivery */}
+          {/* Delivery Address */}
           {!isPickup && (
             <Card>
               <CardHeader>
@@ -349,62 +343,98 @@ export default function CheckoutForm({
                   </CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Field>
-                  <FieldLabel htmlFor="street">Street Address</FieldLabel>
-                  <Input
-                    id="street"
-                    name="street"
-                    placeholder="123 Main Street"
-                    value={formData.street}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </Field>
+              <CardContent className="space-y-3">
+                {savedAddresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => { setSelectedAddressId(a.id); setShowNewAddress(false); }}
+                    className={`w-full text-left flex items-start gap-3 rounded-xl border-2 p-3 transition-all ${
+                      selectedAddressId === a.id && !showNewAddress
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <div className={`mt-0.5 size-4 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                      selectedAddressId === a.id && !showNewAddress
+                        ? "border-primary bg-primary"
+                        : "border-gray-300"
+                    }`}>
+                      {selectedAddressId === a.id && !showNewAddress && (
+                        <Check className="size-2.5 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800">{a.label}</p>
+                      <p className="text-sm text-gray-600 truncate">{a.address}</p>
+                      <p className="text-xs text-gray-400">{a.phone}</p>
+                    </div>
+                  </button>
+                ))}
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field>
-                    <FieldLabel htmlFor="city">City</FieldLabel>
-                    <Input
-                      id="city"
-                      name="city"
-                      placeholder="Philadelphia"
-                      value={formData.city}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      required
-                    />
-                  </Field>
+                {savedAddresses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => { setShowNewAddress(true); setSelectedAddressId(null); }}
+                    className={`w-full text-left flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${
+                      showNewAddress
+                        ? "border-primary bg-primary/5"
+                        : "border-dashed border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <Plus className="size-4 text-gray-500 shrink-0" />
+                    <span className="text-sm text-gray-600 font-medium">Use a different address</span>
+                  </button>
+                )}
 
-                  <Field>
-                    <FieldLabel htmlFor="state">State</FieldLabel>
-                    <Input
-                      id="state"
-                      name="state"
-                      placeholder="PA"
-                      maxLength={2}
-                      value={formData.state}
-                      onChange={handleChange}
-                      disabled={isLoading}
-                      required
-                    />
-                  </Field>
-                </div>
+                {showNewAddress && (
+                  <div className="space-y-3 pt-1">
+                    <Field>
+                      <FieldLabel htmlFor="address">Full Address</FieldLabel>
+                      <Input
+                        id="address"
+                        name="address"
+                        placeholder="e.g. 255 South 60th Street, Philadelphia, PA 19139"
+                        value={formData.address}
+                        onChange={handleChange}
+                        disabled={isLoading}
+                        required
+                      />
+                    </Field>
 
-                <Field>
-                  <FieldLabel htmlFor="zipCode">ZIP Code</FieldLabel>
-                  <Input
-                    id="zipCode"
-                    name="zipCode"
-                    placeholder="19139"
-                    maxLength={5}
-                    value={formData.zipCode}
-                    onChange={handleChange}
-                    disabled={isLoading}
-                    required
-                  />
-                </Field>
+                    {!isGuest && (
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={saveAddress}
+                            onChange={(e) => setSaveAddress(e.target.checked)}
+                            className="rounded border-gray-300 text-primary"
+                          />
+                          <span className="text-sm text-gray-700">Save this address for next time</span>
+                        </label>
+                        {saveAddress && (
+                          <div className="flex gap-2 pl-6">
+                            {["Home", "Work", "Other"].map((l) => (
+                              <button
+                                key={l}
+                                type="button"
+                                onClick={() => setSaveLabel(l)}
+                                className={`text-xs px-3 py-1 rounded-full border transition-all ${
+                                  saveLabel === l
+                                    ? "border-primary bg-primary text-white"
+                                    : "border-gray-300 text-gray-600 hover:border-gray-400"
+                                }`}
+                              >
+                                {l}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -434,7 +464,6 @@ export default function CheckoutForm({
                       required
                     />
                   </Field>
-
                   <Field>
                     <FieldLabel htmlFor="email">Email Address</FieldLabel>
                     <Input
@@ -452,31 +481,30 @@ export default function CheckoutForm({
               ) : (
                 <div className="rounded-xl bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-600">
                   Ordering as{" "}
-                  <span className="font-semibold text-gray-800">
-                    {formData.name}
-                  </span>{" "}
+                  <span className="font-semibold text-gray-800">{formData.name}</span>{" "}
                   &mdash; {formData.email}
                 </div>
               )}
 
-              <Field>
-                <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  disabled={isLoading}
-                  required
-                />
-              </Field>
+              {/* Phone shown when no saved address will supply it */}
+              {(isPickup || showNewAddress || savedAddresses.length === 0) && (
+                <Field>
+                  <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                    required
+                  />
+                </Field>
+              )}
 
               <Field>
-                <FieldLabel htmlFor="notes">
-                  Special Instructions (Optional)
-                </FieldLabel>
+                <FieldLabel htmlFor="notes">Special Instructions (Optional)</FieldLabel>
                 <textarea
                   id="notes"
                   name="notes"
@@ -496,9 +524,7 @@ export default function CheckoutForm({
           <div className="sticky top-6 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-bold font-playfair">
-                  Order Summary
-                </CardTitle>
+                <CardTitle className="text-xl font-bold font-playfair">Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {items.map((item) => (
@@ -531,12 +557,8 @@ export default function CheckoutForm({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm line-clamp-1">
-                        {item.title}
-                      </h4>
-                      <p className="text-xs text-gray-500">
-                        Qty: {item.quantity}
-                      </p>
+                      <h4 className="font-semibold text-sm line-clamp-1">{item.title}</h4>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                       <p className="text-sm font-semibold font-playfair mt-1">
                         ${(item.totalPrice ?? 0).toFixed(2)}
                       </p>
@@ -555,9 +577,7 @@ export default function CheckoutForm({
                 {!isPickup && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Delivery Fee</span>
-                    <span className="font-semibold">
-                      ${appliedDeliveryFee.toFixed(2)}
-                    </span>
+                    <span className="font-semibold">${appliedDeliveryFee.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -578,7 +598,8 @@ export default function CheckoutForm({
                   <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800 mt-2">
                     <AlertCircle className="size-4 shrink-0 mt-0.5" />
                     <span>
-                      Minimum order for delivery is <strong>${minimumOrder.toFixed(2)}</strong>. Add <strong>${(minimumOrder - subtotal).toFixed(2)}</strong> more to your cart.
+                      Minimum order for delivery is <strong>${minimumOrder.toFixed(2)}</strong>.
+                      Add <strong>${(minimumOrder - subtotal).toFixed(2)}</strong> more to your cart.
                     </span>
                   </div>
                 )}
