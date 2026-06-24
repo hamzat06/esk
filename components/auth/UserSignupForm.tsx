@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { signUpAction } from "@/app/actions/auth";
 import Link from "next/link";
-import { Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2, Eye, EyeOff } from "lucide-react";
 // import GoogleButton from "./GoogleButton";
 
 export default function UserSignupForm({
@@ -23,6 +23,8 @@ export default function UserSignupForm({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -175,14 +177,22 @@ export default function UserSignupForm({
             <Input
               id="password"
               name="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Create a strong password"
-              className="pl-10 bg-gray-50 border-gray-300 focus:bg-white"
+              className="pl-10 pr-10 bg-gray-50 border-gray-300 focus:bg-white"
               value={formData.password}
               onChange={handleChange}
               disabled={isLoading}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+            </button>
           </div>
           <FieldDescription className="text-gray-500 text-sm">
             Must be at least 8 characters long
@@ -202,14 +212,22 @@ export default function UserSignupForm({
             <Input
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm your password"
-              className="pl-10 bg-gray-50 border-gray-300 focus:bg-white"
+              className="pl-10 pr-10 bg-gray-50 border-gray-300 focus:bg-white"
               value={formData.confirmPassword}
               onChange={handleChange}
               disabled={isLoading}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((p) => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+            </button>
           </div>
         </Field>
 
