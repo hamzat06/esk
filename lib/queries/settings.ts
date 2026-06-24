@@ -28,6 +28,8 @@ export type BannerImage = {
   image: string;
   alt: string;
   order: number;
+  heading?: string;
+  subtext?: string;
 };
 
 export type ShopInfo = {

@@ -17,6 +17,8 @@ type BannerImage = {
   image: string;
   alt: string;
   order: number;
+  heading?: string;
+  subtext?: string;
 };
 
 type ShopCarouselProps = {
@@ -124,7 +126,23 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
                 )}
 
                 {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+
+                {/* Slide Text */}
+                {(banner.heading || banner.subtext) && (
+                  <div className="absolute bottom-6 left-6 right-6 sm:bottom-10 sm:left-10 z-10">
+                    {banner.heading && (
+                      <h2 className="text-white font-playfair font-bold text-2xl sm:text-4xl md:text-5xl leading-tight drop-shadow-lg">
+                        {banner.heading}
+                      </h2>
+                    )}
+                    {banner.subtext && (
+                      <p className="text-white/90 text-sm sm:text-base md:text-lg mt-1 sm:mt-2 drop-shadow-md max-w-lg">
+                        {banner.subtext}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </CarouselItem>
           ))}

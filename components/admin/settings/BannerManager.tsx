@@ -31,6 +31,8 @@ export type BannerImage = {
   image: string;
   alt: string;
   order: number;
+  heading?: string;
+  subtext?: string;
 };
 
 type BannerManagerProps = {
@@ -47,6 +49,8 @@ export default function BannerManager({
   const [editingBanner, setEditingBanner] = useState<BannerImage | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editAlt, setEditAlt] = useState("");
+  const [editHeading, setEditHeading] = useState("");
+  const [editSubtext, setEditSubtext] = useState("");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleUploadSuccess = (result: any) => {
@@ -77,6 +81,8 @@ export default function BannerManager({
   const openEditDialog = (banner: BannerImage) => {
     setEditingBanner(banner);
     setEditAlt(banner.alt);
+    setEditHeading(banner.heading ?? "");
+    setEditSubtext(banner.subtext ?? "");
     setIsEditDialogOpen(true);
   };
 
@@ -84,13 +90,17 @@ export default function BannerManager({
     setIsEditDialogOpen(false);
     setEditingBanner(null);
     setEditAlt("");
+    setEditHeading("");
+    setEditSubtext("");
   };
 
   const handleSaveEdit = async () => {
     if (!editingBanner) return;
 
     const updatedBanners = banners.map((b) =>
-      b.id === editingBanner.id ? { ...b, alt: editAlt } : b,
+      b.id === editingBanner.id
+        ? { ...b, alt: editAlt, heading: editHeading, subtext: editSubtext }
+        : b,
     );
 
     setBanners(updatedBanners);
@@ -243,8 +253,11 @@ export default function BannerManager({
 
                   {/* Banner Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{banner.alt}</p>
-                    <p className="text-xs text-gray-500">Order: {index + 1}</p>
+                    <p className="font-medium truncate">{banner.heading || banner.alt}</p>
+                    {banner.subtext && (
+                      <p className="text-xs text-gray-500 truncate">{banner.subtext}</p>
+                    )}
+                    <p className="text-xs text-gray-400">Slide {index + 1}</p>
                   </div>
 
                   {/* Actions */}
@@ -306,9 +319,39 @@ export default function BannerManager({
               </div>
             )}
 
+            {/* Heading */}
+            <div>
+              <Label htmlFor="heading">Slide Heading</Label>
+              <Input
+                id="heading"
+                value={editHeading}
+                onChange={(e) => setEditHeading(e.target.value)}
+                placeholder="E.g., Authentic Nigerian Cuisine"
+                className="mt-1.5"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Large text shown on the slide — leave blank to hide
+              </p>
+            </div>
+
+            {/* Subtext */}
+            <div>
+              <Label htmlFor="subtext">Slide Subtext</Label>
+              <Input
+                id="subtext"
+                value={editSubtext}
+                onChange={(e) => setEditSubtext(e.target.value)}
+                placeholder="E.g., Order fresh meals delivered to your door"
+                className="mt-1.5"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Smaller description line below the heading
+              </p>
+            </div>
+
             {/* Alt Text Input */}
             <div>
-              <Label htmlFor="alt">Alt Text / Description *</Label>
+              <Label htmlFor="alt">Alt Text *</Label>
               <Input
                 id="alt"
                 value={editAlt}
@@ -317,7 +360,7 @@ export default function BannerManager({
                 className="mt-1.5"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Describe what&apos;s in the image for accessibility
+                Describes the image for screen readers
               </p>
             </div>
           </div>
