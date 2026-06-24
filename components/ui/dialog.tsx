@@ -78,7 +78,7 @@ function DialogContent({
         </VisuallyHidden>
         {/* Sheet: h-0 sticky wrapper takes no grid row height; button floats over the content */}
         {showCloseButton && sheet && (
-          <div className="sticky top-0 z-20 h-0 overflow-visible">
+          <div className="sticky top-0 z-20 h-0 min-h-0 overflow-visible">
             <DialogPrimitive.Close
               data-slot="dialog-close"
               className="absolute top-4 right-4 ring-offset-background focus:ring-primary bg-white hover:bg-gray-100 border border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md p-2 rounded-full opacity-90 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0"

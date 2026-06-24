@@ -99,7 +99,7 @@ const ProductDetailsModal = ({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent sheet className="p-0 gap-0">
         {/* Product Image */}
-        <div className="relative w-full h-72 sm:h-80">
+        <div className="relative w-full h-72 sm:h-80 overflow-hidden">
           {product.image ? (
             isVideoAsset(product.image) ? (
               <video
@@ -116,16 +116,14 @@ const ProductDetailsModal = ({
                 src={product.image}
                 className={`object-cover ${!product.in_stock && "grayscale"}`}
                 fill
-                crop={{ type: "auto", source: true }}
+                crop={{ type: "fill", source: true }}
               />
             )
           ) : (
             <Image
               src="/assets/mustard-back.jpg"
               alt="Mockup"
-              className={`object-cover size-auto ${
-                !product.in_stock && "grayscale"
-              }`}
+              className={`object-cover ${!product.in_stock && "grayscale"}`}
               fill
             />
           )}
