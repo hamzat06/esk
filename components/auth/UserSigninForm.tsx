@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import GoogleButton from "./GoogleButton";
 
 export default function UserSigninForm({
   className,
@@ -88,6 +89,19 @@ export default function UserSigninForm({
           <p className="text-gray-600 text-sm sm:text-base">
             Sign in to your account to continue
           </p>
+        </div>
+
+        {/* Google */}
+        <GoogleButton />
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-4 text-gray-500">or continue with email</span>
+          </div>
         </div>
 
         {/* Error Message */}

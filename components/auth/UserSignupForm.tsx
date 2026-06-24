@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { signUpAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
+import GoogleButton from "./GoogleButton";
 
 export default function UserSignupForm({
   className,
@@ -96,6 +97,19 @@ export default function UserSignupForm({
           <p className="text-gray-600 text-sm sm:text-base">
             Join us to start ordering delicious meals
           </p>
+        </div>
+
+        {/* Google */}
+        <GoogleButton />
+
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-300" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white px-4 text-gray-500">or sign up with email</span>
+          </div>
         </div>
 
         {/* Error Message */}
