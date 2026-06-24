@@ -105,7 +105,7 @@ export default function UserSignupForm({
         <GoogleButton />
         */}
 
-        {/* Divider */}
+        {/* Divider — uncomment once Google OAuth is configured
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300" />
@@ -114,6 +114,7 @@ export default function UserSignupForm({
             <span className="bg-white px-4 text-gray-500">or sign up with email</span>
           </div>
         </div>
+        */}
 
         {/* Error Message */}
         {error && (
