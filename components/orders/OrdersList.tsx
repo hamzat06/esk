@@ -239,8 +239,8 @@ export default function OrdersList({ orders }: OrdersListProps) {
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-bold text-xl font-playfair text-gray-900">
-                          {order.orderNumber}
+                        <h3 className="font-bold text-base text-gray-900">
+                          #{order.orderNumber}
                         </h3>
                         {isActive && (
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary animate-pulse">
@@ -275,13 +275,9 @@ export default function OrdersList({ orders }: OrdersListProps) {
                     </div>
 
                     {/* Status Badge */}
-                    <div
-                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border ${status.bgColor} ${status.borderColor} shrink-0`}
-                    >
-                      <StatusIcon className={`size-4 ${status.color}`} />
-                      <span className={`font-semibold text-sm ${status.color}`}>
-                        {status.label}
-                      </span>
+                    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${status.bgColor} ${status.borderColor}`}>
+                      <StatusIcon className={`size-3 ${status.color}`} />
+                      <span className={status.color}>{status.label}</span>
                     </div>
                   </div>
 
@@ -290,16 +286,9 @@ export default function OrdersList({ orders }: OrdersListProps) {
                     <MapPin className="size-4 text-gray-600 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
                       {order.deliveryAddress?.type === "pickup" ? (
-                        <p className="text-sm font-semibold text-gray-700">
-                          Pickup — collect in store
-                        </p>
+                        <p className="text-sm font-semibold text-gray-700">Pickup — collect in store</p>
                       ) : (
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {order.deliveryAddress?.street},{" "}
-                          {order.deliveryAddress?.city},{" "}
-                          {order.deliveryAddress?.state}{" "}
-                          {order.deliveryAddress?.zipCode}
-                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">{order.deliveryAddress?.address}</p>
                       )}
                     </div>
                   </div>

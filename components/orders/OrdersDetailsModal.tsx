@@ -128,9 +128,6 @@ export default function OrderDetailsModal({
 
   const status = statusConfig[order.status] ?? statusConfig.pending_payment;
   const StatusIcon = status.icon;
-  const isActive = ["pending", "confirmed", "preparing", "ready"].includes(
-    order.status,
-  );
 
   const handleCopyOrderNumber = async () => {
     try {
@@ -168,17 +165,15 @@ export default function OrderDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-hidden p-0 gap-0">
+      <DialogContent className="sm:max-w-3xl h-[95vh] sm:h-auto sm:max-h-[90vh] overflow-hidden p-0 gap-0 flex flex-col">
         {/* Header with Status Banner */}
-        <div
-          className={`${status.bgColor} border-b ${status.borderColor} px-6 pt-6 pb-5`}
-        >
+        <div className={`${status.bgColor} border-b ${status.borderColor} px-4 sm:px-6 pt-4 sm:pt-6 pb-4 shrink-0`}>
           <DialogHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <DialogTitle className="text-2xl sm:text-3xl font-bold font-playfair text-gray-900">
-                    {order.orderNumber}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <DialogTitle className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+                    #{order.orderNumber}
                   </DialogTitle>
                   <Button
                     variant="ghost"
@@ -218,20 +213,9 @@ export default function OrderDetailsModal({
               </div>
 
               {/* Status Badge */}
-              <div
-                className={`flex flex-col items-end gap-1.5 shrink-0 p-2 sm:p-4 rounded-xl border-2 ${status.borderColor} bg-white shadow-sm`}
-              >
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <StatusIcon className={`size-4 sm:size-5 ${status.color}`} />
-                  <span className={`font-bold text-sm sm:text-base ${status.color}`}>
-                    {status.label}
-                  </span>
-                </div>
-                {isActive && (
-                  <span className="text-xs text-gray-600 font-medium hidden sm:block">
-                    Estimated: 30-45 min
-                  </span>
-                )}
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold shrink-0 ${status.bgColor} ${status.borderColor} bg-white`}>
+                <StatusIcon className={`size-3 ${status.color}`} />
+                <span className={status.color}>{status.label}</span>
               </div>
             </div>
           </DialogHeader>
@@ -244,7 +228,7 @@ export default function OrderDetailsModal({
         </div>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <div className="p-6 space-y-6">
             {/* Order Items */}
             <div>
@@ -351,16 +335,8 @@ export default function OrderDetailsModal({
                       </>
                     ) : (
                       <>
-                        <p className="font-semibold text-sm text-gray-900 mb-1.5">
-                          Delivery Address
-                        </p>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {order.deliveryAddress?.street}
-                          <br />
-                          {order.deliveryAddress?.city},{" "}
-                          {order.deliveryAddress?.state}{" "}
-                          {order.deliveryAddress?.zipCode}
-                        </p>
+                        <p className="font-semibold text-sm text-gray-900 mb-1.5">Delivery Address</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">{order.deliveryAddress?.address}</p>
                       </>
                     )}
                   </div>

@@ -34,10 +34,7 @@ export type Order = {
   total: number;
   deliveryAddress: {
     type?: "delivery" | "pickup";
-    street?: string;
-    city?: string;
-    state?: string;
-    zipCode?: string;
+    address?: string;
     phone: string;
   };
   status: OrderStatus;
