@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/lib/supabase/client";
 import { toast } from "react-hot-toast";
 import {
   Calendar,
@@ -69,31 +68,14 @@ export default function CateringBookingForm({
     setIsLoading(true);
 
     try {
-      // Get current user (if logged in)
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      // Insert booking
-      const { error } = await supabase.from("catering_bookings").insert({
-        user_id: user?.id || null,
-        full_name: formData.full_name,
-        email: formData.email,
-        phone: formData.phone,
-        event_type: formData.event_type,
-        event_date: formData.event_date,
-        event_time: formData.event_time || null,
-        guest_count: parseInt(formData.guest_count),
-        venue_address: formData.venue_address,
-        service_type: formData.service_type,
-        menu_preferences: formData.menu_preferences || null,
-        budget_range: formData.budget_range || null,
-        special_requests: formData.special_requests || null,
-        heard_from: formData.heard_from || null,
-        status: "pending",
+      const res = await fetch("/api/catering", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      if (error) throw error;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to submit booking");
 
       toast.success("Booking request submitted! We'll contact you soon.");
 

@@ -277,6 +277,156 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
   return sendEmail(data.customerEmail, `Order Confirmation - #${data.orderNumber}`, html);
 }
 
+export interface CateringBookingData {
+  full_name: string;
+  email: string;
+  phone: string;
+  event_type: string;
+  event_date: string;
+  event_time?: string;
+  guest_count: number;
+  venue_address: string;
+  service_type: string;
+  menu_preferences?: string;
+  budget_range?: string;
+  special_requests?: string;
+}
+
+export async function sendCateringCustomerEmail(data: CateringBookingData) {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catering Booking Received</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">EddySylva Kitchen</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; background-color: #10b981; border-radius: 50%; padding: 20px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600; text-align: center;">Booking Request Received!</h2>
+              <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">We'll be in touch with you shortly</p>
+
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 10px;">Hi ${data.full_name},</p>
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 30px;">
+                Thank you for your catering inquiry! We've received your booking request and our team will review it and get back to you as soon as possible.
+              </p>
+
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 30px;">
+                <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1f2937;">Your Booking Details</h3>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 40%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_type}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Event Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_date}${data.event_time ? " at " + data.event_time : ""}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Guest Count</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.guest_count} guests</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Venue</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.venue_address}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.service_type}</td></tr>
+                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget Range</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.budget_range}</td></tr>` : ""}
+                  ${data.menu_preferences ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Menu Preferences</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.menu_preferences}</td></tr>` : ""}
+                  ${data.special_requests ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Special Requests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.special_requests}</td></tr>` : ""}
+                </table>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                Have questions? Contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color: #A62828;">${SUPPORT_EMAIL}</a>
+              </p>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(data.email, "Catering Booking Request Received — EddySylva Kitchen", html);
+}
+
+export async function sendCateringAdminEmail(data: CateringBookingData) {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Catering Booking</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">EddySylva Kitchen</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600;">New Catering Booking Request</h2>
+              <p style="color: #6b7280; margin: 0 0 30px;">A customer has submitted a catering inquiry.</p>
+
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 24px;">
+                <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1f2937;">Contact Information</h3>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 35%;">Name</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.full_name}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Email</td><td style="padding: 6px 0; font-size: 14px;"><a href="mailto:${data.email}" style="color: #A62828;">${data.email}</a></td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Phone</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.phone}</td></tr>
+                </table>
+              </div>
+
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 30px;">
+                <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1f2937;">Event Details</h3>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 35%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_type}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_date}${data.event_time ? " at " + data.event_time : ""}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Guests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.guest_count}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Venue</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.venue_address}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.service_type}</td></tr>
+                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.budget_range}</td></tr>` : ""}
+                  ${data.menu_preferences ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Menu Preferences</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.menu_preferences}</td></tr>` : ""}
+                  ${data.special_requests ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Special Requests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.special_requests}</td></tr>` : ""}
+                </table>
+              </div>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+                <tr>
+                  <td align="center">
+                    <a href="${SITE_URL}/admin/catering" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      View in Admin Panel
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(SUPPORT_EMAIL, `New Catering Booking — ${data.full_name} (${data.event_date})`, html);
+}
+
 export async function sendOrderStatusEmail(
   _orderId: string,
   newStatus: string,
