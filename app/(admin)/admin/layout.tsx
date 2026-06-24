@@ -14,7 +14,7 @@ export default function AdminLayout({
       <Suspense fallback={<div />}>
         <AdminSidebar />
       </Suspense>
-      <main className="flex-1 lg:ml-64 pt-14 sm:pt-0">
+      <main className="flex-1 lg:ml-64 pt-14 sm:pt-0 min-w-0 overflow-hidden">
         <Suspense fallback={<AdminLoading />}>{children}</Suspense>
       </main>
     </div>

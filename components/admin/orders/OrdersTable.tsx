@@ -114,8 +114,8 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
 
   return (
     <>
-      <div className="rounded-xl border bg-white overflow-hidden w-full">
-        <div className="overflow-x-auto w-full">
+      <div className="rounded-xl border bg-white overflow-hidden w-full max-w-full">
+        <div className="overflow-x-auto w-full max-w-full">
           <Table className="min-w-160">
             <TableHeader>
               <TableRow className="bg-gray-50">
