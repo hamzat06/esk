@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  type CarouselApi,
 } from "@/components/ui/carousel";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
@@ -27,10 +26,8 @@ type ShopCarouselProps = {
 const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
   const [banners, setBanners] = useState<BannerImage[]>(initialBanners || []);
   const [isLoading, setIsLoading] = useState(!initialBanners);
-  const [api, setApi] = useState<CarouselApi>();
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const autoplay = React.useRef(
+  const autoplay = useRef(
     Autoplay({ delay: 3000, stopOnInteraction: false }),
   );
 
@@ -52,14 +49,6 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
       fetchBanners();
     }
   }, [initialBanners]);
-
-  useEffect(() => {
-    if (!api) return;
-    setCurrentSlide(api.selectedScrollSnap());
-    api.on("select", () => {
-      setCurrentSlide(api.selectedScrollSnap());
-    });
-  }, [api]);
 
   if (isLoading) {
     return (
@@ -99,7 +88,6 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
   return (
     <div className="relative bg-gray-900">
       <Carousel
-        setApi={setApi}
         plugins={[autoplay.current]}
         className="w-full"
         opts={{
@@ -142,23 +130,6 @@ const ShopCarousel = ({ initialBanners }: ShopCarouselProps) => {
           ))}
         </CarouselContent>
       </Carousel>
-
-      {/* Carousel Indicators */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-10">
-          {banners.map((_, index) => (
-            <div
-              key={index}
-              aria-label={`Slide ${index + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentSlide
-                  ? "w-5 bg-white"
-                  : "w-2 bg-white/50"
-              }`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 };
