@@ -3,7 +3,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { initSounds } from "@/lib/sounds";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -31,6 +32,8 @@ export default function Providers({ children }: { children: ReactNode }) {
         },
       }),
   );
+
+  useEffect(() => { initSounds(); }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
