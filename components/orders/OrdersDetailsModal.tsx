@@ -77,12 +77,8 @@ export default function OrderDetailsModal({ order, open, onClose }: OrderDetails
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      {/*
-        Inline style forces flex-col + overflow-hidden on the dialog box,
-        overriding the base grid + overflow-y-auto which breaks sticky on iOS Safari.
-        The body div then owns the scroll with flex-1 min-h-0 overflow-y-auto.
-      */}
       <DialogContent
+        sheet
         className="sm:max-w-2xl p-0 gap-0"
         style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
       >

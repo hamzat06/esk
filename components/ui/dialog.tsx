@@ -63,12 +63,12 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed z-50 w-full border border-gray-200 shadow-2xl duration-300 outline-none",
+          "bg-white data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed z-50 w-full duration-300 outline-none",
           sheet
-            ? // Bottom sheet on mobile — top/bottom insets create the gap reliably without svh/max-h hacks
-              "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom top-[10%] bottom-0 left-0 right-0 rounded-t-2xl overflow-y-auto grid gap-4 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:max-h-[90vh] sm:rounded-2xl sm:pb-6"
+            ? // Bottom sheet: no border on mobile (shadow only), border restored on sm+
+              "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom top-[10%] bottom-0 left-0 right-0 rounded-t-2xl overflow-y-auto grid gap-4 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(0,0,0,0.12)] sm:shadow-2xl sm:border sm:border-gray-200 sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-lg sm:max-h-[90vh] sm:rounded-2xl sm:pb-6"
             : // Default centered modal
-              "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-bottom-[8%] data-[state=open]:slide-in-from-bottom-[8%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100%-2rem)] max-h-[95vh] overflow-y-auto rounded-2xl grid gap-4 p-6 sm:max-w-lg",
+              "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-bottom-[8%] data-[state=open]:slide-in-from-bottom-[8%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[calc(100%-2rem)] max-h-[95vh] overflow-y-auto rounded-2xl grid gap-4 p-6 shadow-2xl border border-gray-200 sm:max-w-lg",
           className,
         )}
         {...props}
