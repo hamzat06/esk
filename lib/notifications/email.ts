@@ -553,6 +553,9 @@ export async function sendCateringCustomerEmail(data: CateringBookingData) {
 }
 
 export async function sendCateringAdminEmail(data: CateringBookingData) {
+  const adminEmails = await getAdminEmails();
+  if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -618,7 +621,7 @@ export async function sendCateringAdminEmail(data: CateringBookingData) {
 </body>
 </html>`;
 
-  return sendEmail(SUPPORT_EMAIL, `New Catering Booking — ${data.full_name} (${formatEventDate(data.event_date)})`, html);
+  return sendEmail(adminEmails, `New Catering Booking — ${data.full_name} (${formatEventDate(data.event_date)})`, html);
 }
 
 export async function sendOrderStatusEmail(
