@@ -403,6 +403,89 @@ export interface CateringBookingData {
   special_requests?: string;
 }
 
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  wedding: "Wedding",
+  corporate: "Corporate Event",
+  birthday: "Birthday Party",
+  anniversary: "Anniversary",
+  graduation: "Graduation",
+  religious: "Religious Ceremony",
+  other: "Other",
+};
+
+const SERVICE_TYPE_LABELS: Record<string, string> = {
+  full_service: "Full Service (Staff + Setup)",
+  buffet: "Buffet Style",
+  plated: "Plated Service",
+  drop_off: "Drop-off Only",
+};
+
+const BUDGET_RANGE_LABELS: Record<string, string> = {
+  under_1000: "Under $1,000",
+  "1000_2500": "$1,000 - $2,500",
+  "2500_5000": "$2,500 - $5,000",
+  "5000_10000": "$5,000 - $10,000",
+  over_10000: "Over $10,000",
+};
+
+function humanize(value: string): string {
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatEventType(value: string): string {
+  return EVENT_TYPE_LABELS[value] ?? humanize(value);
+}
+
+function formatServiceType(value: string): string {
+  return SERVICE_TYPE_LABELS[value] ?? humanize(value);
+}
+
+function formatBudgetRange(value: string): string {
+  return BUDGET_RANGE_LABELS[value] ?? humanize(value);
+}
+
+function ordinal(day: number): string {
+  const v = day % 100;
+  if (v >= 11 && v <= 13) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function formatEventDate(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  if (!year || !month || !day) return dateStr;
+
+  const date = new Date(year, month - 1, day);
+  const monthName = date.toLocaleDateString("en-US", { month: "long" });
+  return `${monthName} ${day}${ordinal(day)}, ${year}`;
+}
+
+function formatEventTime(timeStr: string): string {
+  const [hourStr, minuteStr] = timeStr.split(":");
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+  if (Number.isNaN(hour) || Number.isNaN(minute)) return timeStr;
+
+  const period = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${minute.toString().padStart(2, "0")} ${period}`;
+}
+
+function formatEventDateTime(dateStr: string, timeStr?: string): string {
+  const date = formatEventDate(dateStr);
+  return timeStr ? `${date} at ${formatEventTime(timeStr)}` : date;
+}
+
 export async function sendCateringCustomerEmail(data: CateringBookingData) {
   const html = `
 <!DOCTYPE html>
@@ -442,12 +525,12 @@ export async function sendCateringCustomerEmail(data: CateringBookingData) {
               <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 30px;">
                 <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1f2937;">Your Booking Details</h3>
                 <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 40%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_type}</td></tr>
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Event Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_date}${data.event_time ? " at " + data.event_time : ""}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 40%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatEventType(data.event_type)}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Event Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatEventDateTime(data.event_date, data.event_time)}</td></tr>
                   <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Guest Count</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.guest_count} guests</td></tr>
                   <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Venue</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.venue_address}</td></tr>
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.service_type}</td></tr>
-                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget Range</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.budget_range}</td></tr>` : ""}
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatServiceType(data.service_type)}</td></tr>
+                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget Range</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatBudgetRange(data.budget_range)}</td></tr>` : ""}
                   ${data.menu_preferences ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Menu Preferences</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.menu_preferences}</td></tr>` : ""}
                   ${data.special_requests ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Special Requests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.special_requests}</td></tr>` : ""}
                 </table>
@@ -505,12 +588,12 @@ export async function sendCateringAdminEmail(data: CateringBookingData) {
               <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 30px;">
                 <h3 style="margin: 0 0 16px; font-size: 16px; font-weight: 600; color: #1f2937;">Event Details</h3>
                 <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 35%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_type}</td></tr>
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.event_date}${data.event_time ? " at " + data.event_time : ""}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px; width: 35%;">Event Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatEventType(data.event_type)}</td></tr>
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Date</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatEventDateTime(data.event_date, data.event_time)}</td></tr>
                   <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Guests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.guest_count}</td></tr>
                   <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Venue</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.venue_address}</td></tr>
-                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.service_type}</td></tr>
-                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.budget_range}</td></tr>` : ""}
+                  <tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Service Type</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatServiceType(data.service_type)}</td></tr>
+                  ${data.budget_range ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Budget</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${formatBudgetRange(data.budget_range)}</td></tr>` : ""}
                   ${data.menu_preferences ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Menu Preferences</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.menu_preferences}</td></tr>` : ""}
                   ${data.special_requests ? `<tr><td style="padding: 6px 0; color: #6b7280; font-size: 14px;">Special Requests</td><td style="padding: 6px 0; color: #1f2937; font-size: 14px; font-weight: 500;">${data.special_requests}</td></tr>` : ""}
                 </table>
@@ -535,7 +618,7 @@ export async function sendCateringAdminEmail(data: CateringBookingData) {
 </body>
 </html>`;
 
-  return sendEmail(SUPPORT_EMAIL, `New Catering Booking — ${data.full_name} (${data.event_date})`, html);
+  return sendEmail(SUPPORT_EMAIL, `New Catering Booking — ${data.full_name} (${formatEventDate(data.event_date)})`, html);
 }
 
 export async function sendOrderStatusEmail(
