@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Permission } from "@/lib/auth/permissions";
 
 webpush.setVapidDetails(
   "mailto:support@eddysylvakitchen.com",
@@ -48,16 +49,21 @@ export async function sendPushToUser(userId: string, payload: PushPayload) {
   await deliverPush(subs, payload);
 }
 
-export async function sendPushToAdmins(payload: PushPayload) {
+export async function sendPushToAdmins(payload: PushPayload, permission: Permission) {
   const supabaseAdmin = createAdminClient();
   const { data: adminProfiles } = await supabaseAdmin
     .from("profiles")
-    .select("id")
+    .select("id, permissions")
     .eq("role", "admin");
 
   if (!adminProfiles || adminProfiles.length === 0) return;
 
-  const adminIds = adminProfiles.map((p) => p.id);
+  // null permissions means super admin — implicitly has every permission
+  const adminIds = adminProfiles
+    .filter((p) => p.permissions === null || p.permissions.includes(permission))
+    .map((p) => p.id);
+
+  if (adminIds.length === 0) return;
   const { data: subs } = await supabaseAdmin
     .from("push_subscriptions")
     .select("endpoint, p256dh, auth_key")

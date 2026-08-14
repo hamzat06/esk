@@ -95,11 +95,14 @@ export async function POST(request: NextRequest) {
           }
 
           // Notify admins of new order via push
-          sendPushToAdmins({
-            title: "New Order! 🛎️",
-            body: `Order #${order.order_number} from ${customerName} — $${Number(order.total).toFixed(2)}`,
-            url: "/admin/orders",
-          }).catch((e) => console.error("Admin push failed:", e));
+          sendPushToAdmins(
+            {
+              title: "New Order! 🛎️",
+              body: `Order #${order.order_number} from ${customerName} — $${Number(order.total).toFixed(2)}`,
+              url: "/admin/orders",
+            },
+            "orders",
+          ).catch((e) => console.error("Admin push failed:", e));
 
           // Notify admins of new order via email
           sendNewOrderAdminEmail({
