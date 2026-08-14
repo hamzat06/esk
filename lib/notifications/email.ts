@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Permission } from "@/lib/auth/permissions";
 
 interface OrderEmailData {
   orderId: string;
@@ -68,14 +69,18 @@ async function sendEmail(to: string | string[], subject: string, html: string) {
   }
 }
 
-async function getAdminEmails(): Promise<string[]> {
+async function getAdminEmails(permission: Permission): Promise<string[]> {
   const supabaseAdmin = createAdminClient();
   const { data: admins } = await supabaseAdmin
     .from("profiles")
-    .select("email")
+    .select("email, permissions")
     .eq("role", "admin");
 
-  return (admins ?? []).map((a) => a.email).filter((email): email is string => !!email);
+  return (admins ?? [])
+    // null permissions means super admin — implicitly has every permission
+    .filter((a) => a.permissions === null || a.permissions.includes(permission))
+    .map((a) => a.email)
+    .filter((email): email is string => !!email);
 }
 
 export async function sendWelcomeEmail(customerName: string, customerEmail: string) {
@@ -290,7 +295,7 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 }
 
 export async function sendNewOrderAdminEmail(data: OrderEmailData) {
-  const adminEmails = await getAdminEmails();
+  const adminEmails = await getAdminEmails("orders");
   if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
 
   const itemsHtml = data.items
@@ -553,7 +558,7 @@ export async function sendCateringCustomerEmail(data: CateringBookingData) {
 }
 
 export async function sendCateringAdminEmail(data: CateringBookingData) {
-  const adminEmails = await getAdminEmails();
+  const adminEmails = await getAdminEmails("catering");
   if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
 
   const html = `
@@ -737,7 +742,7 @@ export async function sendOrderStatusAdminEmail(
   orderNumber: string,
   customerName: string,
 ) {
-  const adminEmails = await getAdminEmails();
+  const adminEmails = await getAdminEmails("orders");
   if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
 
   const html = `
