@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validateApiPermission } from "@/lib/auth/permissions";
-import { sendOrderStatusEmail } from "@/lib/notifications/email";
+import { sendOrderStatusEmail, sendOrderStatusAdminEmail } from "@/lib/notifications/email";
 import { sendOrderStatusPush } from "@/lib/notifications/push";
 
 export async function PATCH(
@@ -51,6 +51,9 @@ export async function PATCH(
       (e) => console.error("Status push failed:", e),
     );
   }
+  sendOrderStatusAdminEmail(status, order.order_number, customerName).catch(
+    (e) => console.error("Admin status email failed:", e),
+  );
 
   return NextResponse.json(order);
 }

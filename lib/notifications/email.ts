@@ -1,3 +1,5 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+
 interface OrderEmailData {
   orderId: string;
   orderNumber: string;
@@ -37,7 +39,7 @@ const FOOTER = `
   </tr>
 `;
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function sendEmail(to: string | string[], subject: string, html: string) {
   if (!process.env.RESEND_API_KEY) {
     console.warn("RESEND_API_KEY not set — email not sent");
     return { success: false, error: "No email service configured" };
@@ -64,6 +66,16 @@ async function sendEmail(to: string, subject: string, html: string) {
     console.error("Email error:", error);
     return { success: false, error };
   }
+}
+
+async function getAdminEmails(): Promise<string[]> {
+  const supabaseAdmin = createAdminClient();
+  const { data: admins } = await supabaseAdmin
+    .from("profiles")
+    .select("email")
+    .eq("role", "admin");
+
+  return (admins ?? []).map((a) => a.email).filter((email): email is string => !!email);
 }
 
 export async function sendWelcomeEmail(customerName: string, customerEmail: string) {
@@ -275,6 +287,105 @@ export async function sendOrderConfirmationEmail(data: OrderEmailData) {
 </html>`;
 
   return sendEmail(data.customerEmail, `Order Confirmation - #${data.orderNumber}`, html);
+}
+
+export async function sendNewOrderAdminEmail(data: OrderEmailData) {
+  const adminEmails = await getAdminEmails();
+  if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
+
+  const itemsHtml = data.items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+        <strong>${item.title}</strong>
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">
+        $${item.totalPrice.toFixed(2)}
+      </td>
+    </tr>
+  `,
+    )
+    .join("");
+
+  const addressHtml =
+    data.deliveryAddress.type === "pickup"
+      ? `<p style="margin: 0; color: #4b5563;">Pickup — customer will collect in store.</p>`
+      : `<p style="margin: 0; color: #4b5563; line-height: 1.6;">${data.deliveryAddress.address ?? ""}</p>`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Order Received</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">EddySylva Kitchen</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600;">New Order! 🛎️</h2>
+              <p style="color: #6b7280; margin: 0 0 30px;">Order #${data.orderNumber} from ${data.customerName}</p>
+
+              <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 20px; margin: 0 0 24px; border-radius: 8px;">
+                <h3 style="margin: 0 0 15px; font-size: 16px; font-weight: 600; color: #1f2937;">Order Details</h3>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <thead>
+                    <tr style="background-color: #f3f4f6;">
+                      <th style="padding: 12px; text-align: left; font-size: 14px; color: #6b7280;">Item</th>
+                      <th style="padding: 12px; text-align: center; font-size: 14px; color: #6b7280;">Qty</th>
+                      <th style="padding: 12px; text-align: right; font-size: 14px; color: #6b7280;">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>${itemsHtml}</tbody>
+                  <tfoot>
+                    <tr style="border-top: 2px solid #e5e7eb;">
+                      <td colspan="2" style="padding: 12px; text-align: right; font-size: 18px; font-weight: 600; color: #1f2937;">Total:</td>
+                      <td style="padding: 12px; text-align: right; font-size: 18px; font-weight: 600; color: #A62828;">$${data.total.toFixed(2)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <div style="margin: 0 0 30px;">
+                <h3 style="margin: 0 0 10px; font-size: 16px; font-weight: 600; color: #1f2937;">
+                  ${data.deliveryAddress.type === "pickup" ? "Pickup" : "Delivery Address"}
+                </h3>
+                ${addressHtml}
+              </div>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${SITE_URL}/admin/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      View in Admin Panel
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(adminEmails, `New Order — #${data.orderNumber}`, html);
 }
 
 export interface CateringBookingData {
@@ -533,4 +644,60 @@ export async function sendOrderStatusEmail(
 </html>`;
 
   return sendEmail(customerEmail, `${statusInfo.title} - Order #${orderNumber}`, html);
+}
+
+export async function sendOrderStatusAdminEmail(
+  newStatus: string,
+  orderNumber: string,
+  customerName: string,
+) {
+  const adminEmails = await getAdminEmails();
+  if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Status Updated</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">EddySylva Kitchen</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600;">Order Status Updated</h2>
+              <p style="color: #6b7280; margin: 0 0 30px;">
+                Order #${orderNumber} (${customerName}) is now marked as
+                <strong style="color: #1f2937;">${newStatus.replace(/_/g, " ")}</strong>.
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+                <tr>
+                  <td align="center">
+                    <a href="${SITE_URL}/admin/orders" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      View in Admin Panel
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(adminEmails, `Order #${orderNumber} — status: ${newStatus.replace(/_/g, " ")}`, html);
 }

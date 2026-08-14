@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendOrderConfirmationEmail } from "@/lib/notifications/email";
+import { sendOrderConfirmationEmail, sendNewOrderAdminEmail } from "@/lib/notifications/email";
 import { sendPushToAdmins } from "@/lib/notifications/push";
 
 export async function POST(request: NextRequest) {
@@ -71,25 +71,27 @@ export async function POST(request: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const customerEmail = (order.profiles as any)?.email || order.guest_email;
 
-        if (order && customerEmail) {
-          try {
-            await sendOrderConfirmationEmail({
-              orderId: order.id,
-              orderNumber: order.order_number,
-              customerName,
-              customerEmail,
-              items: order.items,
-              subtotal: order.subtotal,
-              deliveryFee: order.delivery_fee,
-              tax: order.tax,
-              total: order.total,
-              deliveryAddress: order.delivery_address,
-              status: order.status,
-            });
+        if (order) {
+          if (customerEmail) {
+            try {
+              await sendOrderConfirmationEmail({
+                orderId: order.id,
+                orderNumber: order.order_number,
+                customerName,
+                customerEmail,
+                items: order.items,
+                subtotal: order.subtotal,
+                deliveryFee: order.delivery_fee,
+                tax: order.tax,
+                total: order.total,
+                deliveryAddress: order.delivery_address,
+                status: order.status,
+              });
 
-            console.log("Order confirmation email sent:", order.order_number);
-          } catch (emailError) {
-            console.error("Failed to send confirmation email:", emailError);
+              console.log("Order confirmation email sent:", order.order_number);
+            } catch (emailError) {
+              console.error("Failed to send confirmation email:", emailError);
+            }
           }
 
           // Notify admins of new order via push
@@ -98,6 +100,21 @@ export async function POST(request: NextRequest) {
             body: `Order #${order.order_number} from ${customerName} — $${Number(order.total).toFixed(2)}`,
             url: "/admin/orders",
           }).catch((e) => console.error("Admin push failed:", e));
+
+          // Notify admins of new order via email
+          sendNewOrderAdminEmail({
+            orderId: order.id,
+            orderNumber: order.order_number,
+            customerName,
+            customerEmail: customerEmail ?? "",
+            items: order.items,
+            subtotal: order.subtotal,
+            deliveryFee: order.delivery_fee,
+            tax: order.tax,
+            total: order.total,
+            deliveryAddress: order.delivery_address,
+            status: order.status,
+          }).catch((e) => console.error("Admin order email failed:", e));
         }
       } catch (error) {
         console.error("Error processing webhook:", error);
