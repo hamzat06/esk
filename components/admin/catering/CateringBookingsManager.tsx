@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "react-hot-toast";
-import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import {
   Eye,
@@ -93,12 +92,13 @@ export default function CateringBookingsManager({
 
   const handleStatusChange = async (bookingId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from("catering_bookings")
-        .update({ status: newStatus, updated_at: new Date().toISOString() })
-        .eq("id", bookingId);
+      const res = await fetch(`/api/admin/catering/${bookingId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update status");
 
       setBookings((prev) =>
         prev.map((booking) =>
@@ -119,19 +119,32 @@ export default function CateringBookingsManager({
 
     setIsUpdating(true);
     try {
-      const { error } = await supabase
-        .from("catering_bookings")
-        .update({
-          status: updateForm.status || selectedBooking.status,
-          quote_amount: updateForm.quote_amount
-            ? parseFloat(updateForm.quote_amount)
-            : selectedBooking.quote_amount,
-          admin_notes: updateForm.admin_notes || selectedBooking.admin_notes,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", selectedBooking.id);
+      const finalStatus = updateForm.status || selectedBooking.status;
+      const finalQuoteAmount = updateForm.quote_amount
+        ? parseFloat(updateForm.quote_amount)
+        : selectedBooking.quote_amount;
+      const finalAdminNotes = updateForm.admin_notes || selectedBooking.admin_notes;
 
-      if (error) throw error;
+      // Only include status if it actually changed, so we don't re-trigger
+      // status-change emails on every notes/quote edit
+      const payload: Record<string, unknown> = {
+        quote_amount: finalQuoteAmount,
+        admin_notes: finalAdminNotes,
+      };
+      if (finalStatus !== selectedBooking.status) {
+        payload.status = finalStatus;
+      }
+
+      const res = await fetch(
+        `/api/admin/catering/${selectedBooking.id}/status`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update booking");
 
       // Update local state
       setBookings((prev) =>
@@ -139,11 +152,9 @@ export default function CateringBookingsManager({
           booking.id === selectedBooking.id
             ? {
                 ...booking,
-                status: updateForm.status || booking.status,
-                quote_amount: updateForm.quote_amount
-                  ? parseFloat(updateForm.quote_amount)
-                  : booking.quote_amount,
-                admin_notes: updateForm.admin_notes || booking.admin_notes,
+                status: finalStatus,
+                quote_amount: finalQuoteAmount,
+                admin_notes: finalAdminNotes,
               }
             : booking,
         ),

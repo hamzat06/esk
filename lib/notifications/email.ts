@@ -629,6 +629,178 @@ export async function sendCateringAdminEmail(data: CateringBookingData) {
   return sendEmail(adminEmails, `New Catering Booking — ${data.full_name} (${formatEventDate(data.event_date)})`, html);
 }
 
+export interface CateringStatusData {
+  full_name: string;
+  email: string;
+  event_type: string;
+  event_date: string;
+  event_time?: string | null;
+  status: string;
+  quote_amount?: number | null;
+}
+
+const CATERING_STATUS_MESSAGES: Record<string, { title: string; message: string; color: string }> = {
+  pending: {
+    title: "Booking Received",
+    message: "Your catering request is in and pending review by our team.",
+    color: "#f59e0b",
+  },
+  reviewing: {
+    title: "Booking Under Review",
+    message: "Our team is reviewing your catering request and will follow up shortly.",
+    color: "#3b82f6",
+  },
+  quoted: {
+    title: "Your Quote is Ready",
+    message: "We've put together a quote for your event — details below.",
+    color: "#8b5cf6",
+  },
+  confirmed: {
+    title: "Booking Confirmed",
+    message: "Your catering booking is confirmed! We look forward to serving you.",
+    color: "#10b981",
+  },
+  completed: {
+    title: "Event Completed",
+    message: "Thank you for choosing EddySylva Kitchen for your event!",
+    color: "#10b981",
+  },
+  cancelled: {
+    title: "Booking Cancelled",
+    message: "Your catering booking has been cancelled. If you have any questions, please contact us.",
+    color: "#ef4444",
+  },
+};
+
+export async function sendCateringStatusEmail(data: CateringStatusData) {
+  const statusInfo = CATERING_STATUS_MESSAGES[data.status];
+  if (!statusInfo) return { success: false, error: "Unknown status" };
+
+  const quoteHtml =
+    data.status === "quoted" && data.quote_amount != null
+      ? `<div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 0 0 30px; text-align: center;">
+          <p style="margin: 0 0 4px; color: #6b7280; font-size: 14px;">Quoted Amount</p>
+          <p style="margin: 0; color: #A62828; font-size: 28px; font-weight: 600;">$${Number(data.quote_amount).toFixed(2)}</p>
+        </div>`
+      : "";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catering Booking Update</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">
+                EddySylva Kitchen
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <div style="display: inline-block; background-color: ${statusInfo.color}; border-radius: 50%; padding: 20px;">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              </div>
+
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600; text-align: center;">
+                ${statusInfo.title}
+              </h2>
+              <p style="text-align: center; color: #6b7280; margin: 0 0 30px;">
+                ${formatEventType(data.event_type)} — ${formatEventDateTime(data.event_date, data.event_time ?? undefined)}
+              </p>
+
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 10px;">Hi ${data.full_name},</p>
+              <p style="color: #4b5563; line-height: 1.6; margin: 0 0 30px;">${statusInfo.message}</p>
+
+              ${quoteHtml}
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                Questions? Contact us at
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: #A62828;">${SUPPORT_EMAIL}</a>
+              </p>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(data.email, `${statusInfo.title} — EddySylva Kitchen`, html);
+}
+
+export async function sendCateringStatusAdminEmail(data: CateringStatusData) {
+  const adminEmails = await getAdminEmails("catering");
+  if (adminEmails.length === 0) return { success: false, error: "No admin emails found" };
+
+  const quoteLine =
+    data.status === "quoted" && data.quote_amount != null
+      ? `<p style="color: #6b7280; margin: 0 0 30px;">Quoted amount: <strong style="color: #1f2937;">$${Number(data.quote_amount).toFixed(2)}</strong></p>`
+      : "";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catering Booking Status Updated</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px;">
+          <tr>
+            <td style="background-color: #A62828; padding: 40px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; font-family: Georgia, serif;">EddySylva Kitchen</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px;">
+              <h2 style="color: #1f2937; margin: 0 0 8px; font-size: 24px; font-weight: 600;">Catering Booking Updated</h2>
+              <p style="color: #6b7280; margin: 0 0 10px;">
+                ${data.full_name}'s ${formatEventType(data.event_type)} booking (${formatEventDateTime(data.event_date, data.event_time ?? undefined)}) is now marked as
+                <strong style="color: #1f2937;">${humanize(data.status)}</strong>.
+              </p>
+              ${quoteLine}
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 10px;">
+                <tr>
+                  <td align="center">
+                    <a href="${SITE_URL}/admin/catering" style="display: inline-block; background-color: #A62828; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                      View in Admin Panel
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ${FOOTER}
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  return sendEmail(adminEmails, `Catering Booking — ${data.full_name} (${humanize(data.status)})`, html);
+}
+
 export async function sendOrderStatusEmail(
   _orderId: string,
   newStatus: string,
