@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingBasket, UserCircle } from "lucide-react";
+import { PartyPopper, ShoppingBasket, UserCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -12,6 +12,7 @@ import Auth from "./auth/Auth";
 import Cart from "./cart/Cart";
 import { useCartStore } from "./cart/stores/cartStore";
 import { supabase } from "@/lib/supabase/client";
+import { useCateringModalStore } from "./catering/stores/cateringModalStore";
 
 type DialogType = "CART" | "AUTH";
 
@@ -20,6 +21,7 @@ const Navbar = () => {
   const [dialogType, setDialogType] = useState<DialogType>("CART");
   const [logo, setLogo] = useState<string>("/assets/esk-logo.png");
   const items = useCartStore((s) => s.items);
+  const openCateringModal = useCateringModalStore((s) => s.open);
 
   const isAuth = dialogType === "AUTH";
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -75,6 +77,16 @@ const Navbar = () => {
           </Link>
 
           <div className="flex items-center gap-3 sm:gap-4">
+            {/* Book Catering Button */}
+            <button
+              className="flex items-center gap-2 rounded-full p-2.5 sm:px-4 sm:py-2.5 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all duration-200 text-sm font-medium text-gray-700"
+              onClick={openCateringModal}
+              aria-label="Book Catering"
+            >
+              <PartyPopper className="size-5 sm:size-5" />
+              <span className="hidden sm:inline">Book Catering</span>
+            </button>
+
             {/* User Account Button */}
             <button
               className="group relative rounded-full p-2.5 sm:p-3 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:scale-95 transition-all duration-200"

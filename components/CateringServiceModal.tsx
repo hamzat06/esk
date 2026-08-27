@@ -11,28 +11,31 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import useToggle from "@/hooks/useToggle";
 import { Button } from "./ui/button";
 import { PartyPopper, Sparkles } from "lucide-react";
 import CateringBookingForm from "./catering/CateringBookingForm";
+import { useCateringModalStore } from "./catering/stores/cateringModalStore";
 
 interface CateringModalProps {
   children?: React.ReactNode;
 }
 
 const CateringServiceModal = (props: CateringModalProps) => {
-  const dialog = useToggle();
+  const isOpen = useCateringModalStore((s) => s.isOpen);
+  const open = useCateringModalStore((s) => s.open);
+  const close = useCateringModalStore((s) => s.close);
+  const setIsOpen = useCateringModalStore((s) => s.setIsOpen);
   const [showForm, setShowForm] = useState(false);
 
   React.useEffect(() => {
     if (sessionStorage.getItem("catering_modal_seen")) return;
     const timer = setTimeout(() => {
-      dialog.handleOpen();
+      open();
       sessionStorage.setItem("catering_modal_seen", "1");
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [open]);
 
   const handleBookClick = () => {
     setShowForm(true);
@@ -40,7 +43,7 @@ const CateringServiceModal = (props: CateringModalProps) => {
 
   const handleFormSuccess = () => {
     setShowForm(false);
-    dialog.handleClose();
+    close();
   };
 
   const handleBack = () => {
@@ -48,7 +51,7 @@ const CateringServiceModal = (props: CateringModalProps) => {
   };
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={dialog.handleClose}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{props?.children}</DialogTrigger>
       <DialogContent sheet className="sm:max-w-2xl">
         {!showForm ? (
